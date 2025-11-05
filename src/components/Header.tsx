@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Globe, User, LogOut, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { useAuth } from '../hooks/useAuth'; // Importação do hook de autenticação
-import logo from './assets/logotipo_transparente.png';
+import logo from './src/assets/logotipo_transparente.png';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
