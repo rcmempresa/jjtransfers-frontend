@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tradução do calendário para português */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Personalização do calendário */
+input[type="date"] {
+  position: relative;
+}
+
+/* Tradução dos dias da semana e meses */
+input[type="date"]:lang(pt) {
+  font-family: inherit;
+}
+
+/* Estilos globais para formulários */
+.booking-form input[type="date"] {
+  color-scheme: light;
+}
+
+/* Tradução personalizada do calendário */
+@supports (-webkit-appearance: none) {
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+
+/* Configuração de idioma para o documento */
+html {
+  lang: pt-PT;
+}
+
+/* Configuração específica para inputs de data */
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: inherit;
+}
+
+/* Configuração para o seletor de data */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: auto;
+}
