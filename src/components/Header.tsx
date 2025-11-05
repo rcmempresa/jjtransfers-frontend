@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Globe, User, LogOut, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { useAuth } from '../hooks/useAuth'; // Importação do hook de autenticação
-import logo from '../public/assets/logotipo_transparente.png';
+
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -103,7 +103,7 @@ const Header: React.FC = () => {
           {/* LOGO */}
           <Link to="/" className="flex-shrink-0">
             <img 
-              src={logo}
+              src="/assets/logotipo_transparente.png"
               alt="J&J Bespoke Travel Logo" 
               className={`object-contain transition-all duration-300 
                 ${isScrolled ? 'h-16' : 'h-20'} `} 

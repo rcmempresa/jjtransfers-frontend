@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Zap, ShieldCheck, ChevronRight } from 'lucide-react';
 // Assumindo que useLanguage é um hook que fornece { t }
 import { useLanguage } from '../hooks/useLanguage';
-import logo from '../public/assets/logotipo_transparente.png';
+
 
 const Footer: React.FC = () => {
   const { t } = useLanguage();
@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
             {/* Logo */}
             <Link to="/" className="inline-block mb-2">
                 <img 
-                    src={logo}
+                    src="/assets/logotipo_transparente.png"
                     alt="J&J Bespoke Travel Logo" 
                     className="h-20 md:h-24 object-contain"
                 />
