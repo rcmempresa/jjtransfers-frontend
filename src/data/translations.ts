@@ -770,7 +770,6 @@ export const translations = {
     dropoffLabel: 'Dropoff',
     dateTimeLabel: 'Date & Time',
     estimatedPriceLabel: 'Estimated Price',
-    priceNote: 'Prices include VAT and may be adjusted with night fees or additional services.',
     passengerDetailsLabel: 'Passenger Details',
     paymentMethodLabel: 'Payment Method',
     },
