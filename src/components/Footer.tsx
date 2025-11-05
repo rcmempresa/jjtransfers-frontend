@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Zap, ShieldCheck, ChevronRight } from 'lucide-react';
 // Assumindo que useLanguage é um hook que fornece { t }
 import { useLanguage } from '../hooks/useLanguage';
-import logo from './src/assets/logotipo_transparente.png';
+import logo from '../assets/logotipo_transparente.png';
 
 const Footer: React.FC = () => {
   const { t } = useLanguage();
