@@ -396,7 +396,7 @@ const News: React.FC = () => {
                 // ⚠️ AJUSTE ESTA URL PARA O SEU ENDPOINT REAL DE NOTÍCIAS ⚠️
                 const url = `http://localhost:3000/api/news`; 
                 
-                const response = await fetch(url); 
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/news`); 
 
                 if (!response.ok) {
                     throw new Error(`Erro ${response.status} ao buscar notícias.`);

@@ -565,7 +565,7 @@ const Fleet: React.FC = () => {
                 // Endpoint local da API, ajuste conforme necessário
                 const url = `http://localhost:3000/api/cars`;
                 
-                const response = await fetch(url); 
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/cars`); 
 
                 if (!response.ok) {
                     throw new Error(`Erro ${response.status} ao buscar a frota.`);

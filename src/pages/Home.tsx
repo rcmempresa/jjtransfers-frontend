@@ -131,7 +131,7 @@ const Home: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:3000/api/cars'); 
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/cars`); 
         if (!response.ok) {
           throw new Error(`Falha ao carregar frota. Status do Servidor: ${response.status}`);
         }
@@ -192,7 +192,7 @@ const Home: React.FC = () => {
       setServicesError(null);
       try {
         // 🎯 Rota de API para serviços
-        const response = await fetch('http://localhost:3000/api/services'); 
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/services`); 
         if (!response.ok) {
           throw new Error(`Falha ao carregar serviços. Status: ${response.status}`);
         }

@@ -343,7 +343,7 @@ const VehicleDetail: React.FC = () => {
             try {
                 const url = `http://localhost:3000/api/cars/${id}`;
                 
-                const response = await fetch(url); 
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/cars/${id}`); 
                 
                 if (!response.ok) {
                     setIsNotFound(true);

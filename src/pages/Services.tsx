@@ -677,7 +677,7 @@ const Services = () => {
             setIsLoading(true);
             setIsError(false);
             try {
-                const response = await fetch('http://localhost:3000/api/services'); 
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/services`); 
                 if (!response.ok) { throw new Error(`Erro de rede: ${response.status} ${response.statusText}`); }
                 const result = await response.json(); 
                 const apiServices = result.data; 

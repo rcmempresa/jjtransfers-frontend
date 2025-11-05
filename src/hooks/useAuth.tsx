@@ -118,7 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthError(null);
         
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/signin`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/auth/signin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),

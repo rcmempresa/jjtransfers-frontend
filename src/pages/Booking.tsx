@@ -172,7 +172,7 @@ const Booking: React.FC = () => {
         
         try {
             // --- 1. BUSCA DE CARROS E SERVIÇOS ---
-            const carsUrl = `${API_BASE_URL}/cars`;
+            const carsUrl = `${import.meta.env.VITE_BACKEND_URL}api/cars`;
             const carsResponse = await fetch(carsUrl); 
             
             if (!carsResponse.ok) {
@@ -187,7 +187,7 @@ const Booking: React.FC = () => {
                 carImagesMap.set(vehicleId, imageUrl);
             });
             
-            const servicesUrl = `${API_BASE_URL}/services`;
+            const servicesUrl = `${import.meta.env.VITE_BACKEND_URL}api/services`;
             const servicesResponse = await fetch(servicesUrl); 
             if (!servicesResponse.ok) {
                 throw new Error(`Falha na resposta HTTP de serviços: Status ${servicesResponse.status}`);
@@ -244,7 +244,7 @@ const Booking: React.FC = () => {
 
 
             // --- 2. BUSCA DE SLOTS RESERVADOS ---
-            const reservedUrl = `${API_BASE_URL}/reservations/reserved-slots`;
+            const reservedUrl = `${import.meta.env.VITE_BACKEND_URL}api/reservations/reserved-slots`;
             const reservedResponse = await fetch(reservedUrl);
             
             if (!reservedResponse.ok) {
@@ -466,7 +466,7 @@ const Booking: React.FC = () => {
     console.log("PAYLOAD DE RESERVA ENVIADO:", payload);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/reservations/create`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/reservations/create`, {
             method: 'POST',
             // 🛑 USAR HEADERS COM O TOKEN
             headers: headers,

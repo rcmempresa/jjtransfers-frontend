@@ -38,7 +38,7 @@ const Contact: React.FC = () => {
     setStatusMessage({ type: null, text: '' }); // Limpar mensagens anteriores
 
     try {
-        const response = await fetch(API_CONTACT_URL, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/contact`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
