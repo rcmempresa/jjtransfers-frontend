@@ -323,7 +323,7 @@ const Home: React.FC = () => {
     <div>
       <FixedVideoBackground />
       {/* Seção Hero */}
-<section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-black">
         <div className="absolute inset-0 overflow-hidden">
           <iframe
             onLoad={() => {
@@ -359,7 +359,7 @@ const Home: React.FC = () => {
         
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50"></div>
         
-        <div className="relative z-10 container mx-auto px-4 py-8 sm:py-12 lg:py-20">
+        <div className="relative z-10 container mx-auto px-4 pt-16 pb-8 sm:pb-12 lg:pb-20 w-full h-full flex flex-col justify-center">
           <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-center min-h-[80vh] lg:min-h-[80vh]">
             {/* Bloco de Texto (Visível apenas em Mobile/Tablet) */}
             <div className="text-white space-y-4 sm:space-y-6 lg:space-y-8 text-center lg:text-left order-1 lg:order-1 lg:hidden">
