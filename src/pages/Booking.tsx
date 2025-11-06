@@ -3,9 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 // Ícones
 import { 
     Check, Briefcase, Lock, Plane, Calendar, Clock, Heart, MapPin, 
-    Moon, Music, Car, Loader2, ArrowRight
+    Moon, Music, Car, Loader2, ArrowRight, CornerDownRight
 } from 'lucide-react'; 
 // Componentes (assumidos como existentes)
+// NOTE: Assumindo que estes componentes existem no seu projeto
 import BookingForm from '../components/BookingForm'; 
 import VehicleCard from '../components/VehicleCard';
 import { useLanguage } from '../hooks/useLanguage';
@@ -93,7 +94,7 @@ const PaymentImageMap: { [key: string]: string } = {
 };
 
 // URL DA API (Usar variável de ambiente em produção)
-const API_BASE_URL = 'http://localhost:3000/api'; 
+// const API_BASE_URL = 'http://localhost:3000/api'; // Removido, usando import.meta.env.VITE_BACKEND_URL
 
 // URL DO VÍDEO DE BACKGROUND
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
@@ -426,6 +427,7 @@ const Booking: React.FC = () => {
     // FIM DA GESTÃO DO TOKEN
     
     // CÁLCULO DA DURAÇÃO DA VIAGEM EM MINUTOS
+    // Assumindo que o ID "6" ou o título "Hora" significam serviço por hora
     const isHourlyService = selectedService.id === "6" || selectedService.title.includes('Hora'); 
 
     const calculatedDurationMinutes = 
@@ -501,6 +503,7 @@ const Booking: React.FC = () => {
                 return; 
             } else if (paymentMethod === 'mb' || paymentMethod === 'mbw') {
                 // 2. MB Way / Multibanco: Fica no Passo 5 para mostrar as referências
+                // O estado de 'currentStep' já está em 5
             } else {
                 // 3. Outros (Ex: Pagamento à Chegada, ou CC bem sucedido): Avança para o 6
                 setCurrentStep(6);
@@ -695,237 +698,242 @@ const Booking: React.FC = () => {
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">4. {t('booking.tripDateTime') || 'Escolha a Data e Hora'}</h2>
                       
                       {/* Resumo Rápido */}
-                      <div className="p-4 bg-gray-800/90 rounded-lg text-center border border-gray-700 mb-4">
-                          <p className="text-sm text-gray-300">
-                              {t('booking.vehicleSelected') || 'Veículo Escolhido:'} <strong className={goldColor}>{selectedVehicle.name}</strong>
-                              <span className='mx-2'>|</span>
-                              {t('booking.serviceSelected') || 'Serviço:'} <strong className={goldColor}>{selectedService.title}</strong>
-                          </p>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 text-sm text-gray-300 p-3 border-b border-gray-700/50">
+                          <p className="mb-2 sm:mb-0"><span className={goldColor}>{t('vehicle') || 'Veículo'}:</span> <strong className="ml-1">{selectedVehicle.name}</strong></p>
+                          <p><span className={goldColor}>{t('service') || 'Serviço'}:</span> <strong className="ml-1">{selectedService.title}</strong></p>
                       </div>
-                      
-                      {/* FORMULÁRIO DE DATA/HORA/DURAÇÃO */}
-                      <form onSubmit={(e) => {
-                          e.preventDefault();
-                          
-                          // Verifica se é serviço à hora (inferindo pelo ID ou título)
-                          const isHourly = selectedService.id === "6" || selectedService.title.includes('Hora'); 
-                          
-                          if (isHourly && (!tripDetails.durationHours || tripDetails.durationHours < 1)) {
-                              setSlotValidationError(t('booking.selectDurationError') || "Por favor, selecione a duração do serviço à hora (mínimo 1h).");
-                              return;
-                          }
-                          
-                          // Chama o handler principal do passo
-                          handleDateTimeSubmit(tripDetails);
-                      }}>
-                          
-                          <div className="grid md:grid-cols-2 gap-4">
-                              {/* Campo de Data e Hora existentes */}
-                              <div>
-                                  <label htmlFor="date" className="block text-sm font-medium text-gray-400 mb-2">{t('booking.date')}</label>
-                                  <input 
-                                      type="date" 
-                                      id="date"
-                                      name="date"
-                                      value={tripDetails.date}
-                                      min={new Date().toISOString().split('T')[0]} 
-                                      onChange={(e) => setTripDetails(prev => prev ? ({ ...prev, date: e.target.value }) : null)}
-                                      className={inputClasses}
-                                      required
-                                  />
-                              </div>
-                              <div>
-                                  <label htmlFor="time" className="block text-sm font-medium text-gray-400 mb-2">{t('booking.time')}</label>
-                                  <input 
-                                      type="time" 
-                                      id="time"
-                                      name="time"
-                                      value={tripDetails.time}
-                                      onChange={(e) => setTripDetails(prev => prev ? ({ ...prev, time: e.target.value }) : null)}
-                                      className={inputClasses}
-                                      required
-                                  />
-                              </div>
 
-                              {/* ADICIONAR: SELETOR DE DURAÇÃO (Se for Serviço à Hora) */}
-                              {(selectedService.id === "6" || selectedService.title.includes('Hora')) && (
-                                  <div className="md:col-span-2">
-                                      <label htmlFor="duration" className="block text-sm font-medium text-amber-400 mb-2">
-                                          <Clock className="w-4 h-4 inline mr-1" /> {t('booking.selectDuration') || 'Duração da Reserva (Mínimo 1h)'}
-                                      </label>
-                                      <select
-                                          id="duration"
-                                          name="duration"
-                                          value={tripDetails.durationHours || 1}
-                                          onChange={(e) => setTripDetails(prev => prev ? ({ ...prev, durationHours: parseInt(e.target.value) }) : null)}
-                                          className={inputClasses + ' appearance-none'}
-                                          required
-                                      >
-                                          {/* Opções de duração: 1h a 12h (Mínimo 1h) */}
-                                          {[...Array(12).keys()].map(i => (
-                                              <option key={i + 1} value={i + 1}>{i + 1} Hora{i === 0 ? '' : 's'}</option>
-                                          ))}
-                                      </select>
-                                      <p className="text-xs text-gray-500 mt-1">O preço final será calculado com base nesta duração.</p>
-                                  </div>
-                              )}
-                              
-                              {/* Seletor de Ida/Volta (tripType) */}
-                              <div className="md:col-span-2">
-                                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('booking.tripType')}</label>
-                                  <div className="flex space-x-4">
-                                      <label className="flex items-center space-x-2">
-                                          <input type="radio" name="tripType" value="one-way" checked={tripDetails.tripType === 'one-way'} onChange={() => setTripDetails(prev => prev ? ({ ...prev, tripType: 'one-way', returnDate: undefined, returnTime: undefined }) : null)} className="form-radio text-amber-400 bg-gray-700 border-gray-600" />
-                                          <span className="text-white">{t('booking.oneWay')}</span>
-                                      </label>
-                                      <label className="flex items-center space-x-2">
-                                          <input type="radio" name="tripType" value="round-trip" checked={tripDetails.tripType === 'round-trip'} onChange={() => setTripDetails(prev => prev ? ({ ...prev, tripType: 'round-trip' }) : null)} className="form-radio text-amber-400 bg-gray-700 border-gray-600" />
-                                          <span className="text-white">{t('booking.roundTrip')}</span>
-                                      </label>
-                                  </div>
-                              </div>
+                      {/* Aviso de Duração (Se for Serviço por Hora) */}
+                      {(selectedService.id === "6" || selectedService.title.includes('Hora')) && (
+                          <div className="bg-blue-900/50 text-blue-300 p-4 rounded-lg mb-6 flex items-center">
+                              <Clock className="w-5 h-5 mr-3" />
+                              <p className="text-sm">
+                                  {t('booking.hourlyServiceNote') || "Este é um serviço à hora. Por favor, especifique a **duração em horas** no formulário abaixo."}
+                              </p>
                           </div>
-                          
-                          {/* Campos de Volta (apenas se 'round-trip' estiver selecionado) */}
-                          {tripDetails.tripType === 'round-trip' && (
-                              <div className="grid md:grid-cols-2 gap-4 mt-4 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
-                                  <div>
-                                      <label htmlFor="returnDate" className="block text-sm font-medium text-gray-400 mb-2">{t('booking.returnDate')}</label>
-                                      <input type="date" id="returnDate" name="returnDate" value={tripDetails.returnDate || ''} min={tripDetails.date} onChange={(e) => setTripDetails(prev => prev ? ({ ...prev, returnDate: e.target.value }) : null)} className={inputClasses} required />
-                                  </div>
-                                  <div>
-                                      <label htmlFor="returnTime" className="block text-sm font-medium text-gray-400 mb-2">{t('booking.returnTime')}</label>
-                                      <input type="time" id="returnTime" name="returnTime" value={tripDetails.returnTime || ''} onChange={(e) => setTripDetails(prev => prev ? ({ ...prev, returnTime: e.target.value }) : null)} className={inputClasses} required />
-                                  </div>
-                              </div>
-                          )}
-                          
-                          {/* Mensagem de Erro de Validação de Slot */}
-                          {slotValidationError && (
-                              <div className="mt-4 p-3 bg-red-800/70 border border-red-500 rounded-lg text-sm text-white">
-                                  <p>{slotValidationError}</p>
-                              </div>
-                          )}
-                          
-                          {/* Botão de Avançar */}
-                          <div className="mt-6">
-                              <button type="submit" className={buttonClasses}>
-                                  {t('booking.continueToPayment') || 'Continuar para os Dados do Cliente'} <ArrowRight className="w-5 h-5 ml-2" />
-                              </button>
-                          </div>
-                          
-                      </form>
+                      )}
                       
-                    </div> 
+                      {/* Exibir Erro de Validação de Slot, se existir */}
+                      {slotValidationError && (
+                          <div className="bg-red-900/50 text-red-300 p-4 rounded-lg mb-6 flex items-center">
+                              <Lock className="w-5 h-5 mr-3" />
+                              <p className="text-sm font-semibold">{slotValidationError}</p>
+                          </div>
+                      )}
+
+                      {/* Formulário de Data/Hora (Novo Passo 4) */}
+                      <BookingForm 
+                          onSubmit={handleDateTimeSubmit} 
+                          initialData={tripDetails} 
+                          compact={false} 
+                          showDateAndTime={true} 
+                          showTripType={true}
+                          showAddress={false} // Não mostra endereços novamente
+                          showServiceAndVehicle={false} 
+                          reservedSlots={reservedSlots} 
+                          selectedVehicleId={selectedVehicle.id}
+                      />
+                      
+                    </div>
                 </ElectricBorder>
               )}
-
-
-              {/* PASSO 5: Dados do Cliente e Pagamento */}
+              
+              {/* PASSO 5: Detalhes do Cliente e Pagamento */}
               {currentStep === 5 && selectedVehicle && tripDetails && selectedService && (
                 <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                     <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
-                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails')}</h2>
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails') || 'Detalhes e Pagamento'}</h2>
                         
-                        {/* 5A. Resumo da Reserva */}
-                        <div className="mb-6 p-4 bg-gray-800/90 rounded-lg border border-gray-700">
-                            <h3 className="text-xl font-bold mb-3 text-amber-400">{t('booking.tripSummary')}</h3>
-                            <ul className="text-gray-300 space-y-1 text-sm">
-                                <li><span className="font-semibold">{t('booking.service')}:</span> {selectedService.title}</li>
-                                <li><span className="font-semibold">{t('booking.vehicle')}:</span> {selectedVehicle.name}</li>
-                                <li><span className="font-semibold">{t('booking.pickup')}:</span> {tripDetails.pickupAddress}</li>
-                                <li><span className="font-semibold">{t('booking.dropoff')}:</span> {tripDetails.dropoffAddress}</li>
-                                <li><span className="font-semibold">{t('booking.dateTime')}:</span> {tripDetails.date} às {tripDetails.time}</li>
-                                {(selectedService.id === "6" || selectedService.title.includes('Hora')) && (
-                                    <li className='text-amber-500'><span className="font-semibold">{t('booking.duration')}:</span> {tripDetails.durationHours} Hora(s)</li>
-                                )}
-                                {/* PREÇO FINAL: Será mostrado aqui APÓS a submissão, ou pode ser carregado por uma API de preço */}
-                                <li><span className="font-semibold text-white text-lg">{t('booking.estimatedPrice')}:</span> <span className="text-xl text-amber-400">€{selectedVehicle.price.toFixed(2)} *</span></li>
-                                <li className="text-xs text-gray-500">* {t('booking.priceNote') || 'O preço final será confirmado pelo servidor após a validação.'}</li>
-                            </ul>
-                        </div>
-                        
-                        {/* Se o pagamento já tiver sido submetido (MB Way/Multibanco) */}
+                        {/* ---------------------------------------------------- */}
+                        {/* SECÇÃO DE PAGAMENTO (SE REFERÊNCIAS EXISTIREM) */}
+                        {/* ---------------------------------------------------- */}
                         {reservationResponse && (
-                            <div className="mb-6 p-6 bg-green-900/50 border border-green-700 rounded-lg text-white">
-                                <h3 className="text-2xl font-bold mb-3 text-green-400 flex items-center"><Check className='w-6 h-6 mr-2' /> {t('booking.paymentPending')}</h3>
-                                <p className="mb-4">{reservationResponse.message || t('booking.paymentInstruction')}</p>
+                            <div className="text-center p-6 bg-green-900/40 border border-green-700 rounded-lg">
+                                <Check className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                                <h3 className="text-2xl font-bold text-green-300 mb-2">{t('booking.reservationCreated') || 'Reserva Criada com Sucesso!'}</h3>
+                                <p className="text-lg text-gray-200 mb-6">{reservationResponse.message}</p>
                                 
-                                {reservationResponse.payment.data.entity && (
-                                    <div className='mt-4 p-4 bg-black/50 rounded-lg'>
-                                        <p className='text-lg font-semibold text-amber-400'>Multibanco:</p>
-                                        <p>Entidade: <span className='font-mono'>{reservationResponse.payment.data.entity}</span></p>
-                                        <p>Referência: <span className='font-mono'>{reservationResponse.payment.data.reference}</span></p>
-                                        <p>Valor: <span className='font-mono'>€{reservationResponse.payment.data.value}</span></p>
-                                    </div>
-                                )}
-                                <div className="mt-6 text-center">
-                                    <button onClick={() => setCurrentStep(6)} className="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-500 transition-colors">
-                                        {t('booking.viewConfirmation') || 'Ver Confirmação de Reserva'}
-                                    </button>
+                                <div className="p-4 bg-black/50 rounded-lg inline-block">
+                                    <img 
+                                        src={PaymentImageMap[reservationResponse.payment.method] || 'https://placehold.co/100x40?text=Pagamento'} 
+                                        alt={reservationResponse.payment.method} 
+                                        className="h-10 mx-auto mb-4"
+                                    />
+                                    
+                                    <p className="text-white text-xl font-bold mb-4">{t('payment.toPay') || 'Valor a Pagar'}: {reservationResponse.payment.data.value || selectedVehicle.price.toFixed(2)} EUR</p>
+                                    
+                                    {/* Exibir referências de Multibanco */}
+                                    {reservationResponse.payment.method === 'mb' && reservationResponse.payment.data.entity && reservationResponse.payment.data.reference && (
+                                        <div className="text-left space-y-2 text-lg">
+                                            <p><span className={goldColor}>Entidade:</span> <strong className="text-white">{reservationResponse.payment.data.entity}</strong></p>
+                                            <p><span className={goldColor}>Referência:</span> <strong className="text-white">{reservationResponse.payment.data.reference}</strong></p>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Exibir referências de MB Way */}
+                                    {reservationResponse.payment.method === 'mbw' && reservationResponse.payment.data.phone && (
+                                        <div className="text-left space-y-2 text-lg">
+                                            <p><span className={goldColor}>Nº Telefone MB Way:</span> <strong className="text-white">{reservationResponse.payment.data.phone}</strong></p>
+                                            <p className="text-sm text-gray-400 mt-2">{t('payment.mbwInstructions') || 'Deverá confirmar o pagamento na App MB Way.'}</p>
+                                        </div>
+                                    )}
                                 </div>
+                                
+                                <button 
+                                    onClick={() => setCurrentStep(6)} 
+                                    className={`${buttonClasses} mt-8`}
+                                >
+                                    {t('booking.finish')} <CornerDownRight className="w-5 h-5 ml-2" />
+                                </button>
                             </div>
                         )}
-
-                        {/* 5B. Formulário de Dados do Cliente e Método de Pagamento */}
+                        
+                        {/* ---------------------------------------------------- */}
+                        {/* FORMULÁRIO DE CLIENTE E MÉTODO DE PAGAMENTO (SE RESERVA AINDA NÃO SUBMETIDA) */}
+                        {/* ---------------------------------------------------- */}
                         {!reservationResponse && (
                             <form onSubmit={handlePaymentSubmit}>
-                                <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">{t('booking.passengerDetails')}</h3>
-                                <div className="grid md:grid-cols-2 gap-4 mb-6">
-                                    <input type="text" name="passenger_name" value={clientForm.passenger_name} onChange={handleClientFormChange} placeholder={t('booking.name') || "Nome Completo"} className={inputClasses} required />
-                                    <input type="email" name="passenger_email" value={clientForm.passenger_email} onChange={handleClientFormChange} placeholder={t('booking.email') || "Email"} className={inputClasses} required />
-                                    <input type="tel" name="passenger_phone" value={clientForm.passenger_phone} onChange={handleClientFormChange} placeholder={t('booking.phone') || "Telefone (ex: +351 9XX YYY ZZZ)"} className={inputClasses} required />
-                                </div>
                                 
-                                <textarea name="special_requests" value={clientForm.special_requests} onChange={handleClientFormChange} placeholder={t('booking.specialRequests') || "Pedidos Especiais (Ex: Cadeirinha, paragem extra...)"} className={`${inputClasses} mb-6`} rows={3}></textarea>
-
-                                <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">{t('booking.paymentMethod')}</h3>
-                                
-                                <div className="grid md:grid-cols-3 gap-4 mb-6">
-                                    {['mbw', 'mb', 'cc'].map(method => (
-                                        <label key={method} className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all duration-200 ${clientForm.paymentMethod === method ? 'bg-amber-400/20 border-amber-400 ring-2 ring-amber-400' : 'bg-gray-800 border-gray-600 hover:bg-gray-700'}`}>
-                                            <input type="radio" name="paymentMethod" value={method} checked={clientForm.paymentMethod === method} onChange={handleClientFormChange} className="form-radio text-amber-400 bg-gray-700 border-gray-600" />
-                                            <span className="text-sm font-semibold ml-2 text-white capitalize">{method === 'mbw' ? 'MB Way' : method === 'mb' ? 'Multibanco' : 'Cartão Crédito'}</span>
-                                            <img src={PaymentImageMap[method]} alt={method} className="h-6" />
-                                        </label>
-                                    ))}
+                                {/* Resumo da Reserva */}
+                                <div className="mb-6 p-4 bg-gray-800/90 rounded-lg border border-gray-700">
+                                    <p className="text-lg font-bold text-white mb-2">{t('summary.title') || 'Resumo da Viagem'}</p>
+                                    <p className="text-sm text-gray-300">
+                                        <MapPin className="w-4 h-4 inline mr-2 text-amber-400" />
+                                        {tripDetails.pickupAddress} &rarr; {tripDetails.dropoffAddress}
+                                    </p>
+                                    <p className="text-sm text-gray-300 mt-1">
+                                        <Calendar className="w-4 h-4 inline mr-2 text-amber-400" />
+                                        {tripDetails.date} às {tripDetails.time} 
+                                        {tripDetails.tripType === 'round-trip' && ` (Ida e Volta)`}
+                                        {tripDetails.durationHours && (selectedService.id === "6" || selectedService.title.includes('Hora')) && ` (${tripDetails.durationHours}h)`}
+                                    </p>
+                                    <p className="text-base font-semibold text-amber-400 mt-3">{t('summary.price') || 'Preço Base'}: {selectedVehicle.price.toFixed(2)} EUR</p>
                                 </div>
 
+                                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.name') || 'Nome Completo'}</label>
+                                        <input 
+                                            type="text" 
+                                            name="passenger_name"
+                                            value={clientForm.passenger_name}
+                                            onChange={handleClientFormChange}
+                                            className={inputClasses}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.email') || 'Email'}</label>
+                                        <input 
+                                            type="email" 
+                                            name="passenger_email"
+                                            value={clientForm.passenger_email}
+                                            onChange={handleClientFormChange}
+                                            className={inputClasses}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.phone') || 'Telefone'}</label>
+                                        <input 
+                                            type="tel" 
+                                            name="passenger_phone"
+                                            value={clientForm.passenger_phone}
+                                            onChange={handleClientFormChange}
+                                            className={inputClasses}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.paymentMethod') || 'Método de Pagamento'}</label>
+                                        <select 
+                                            name="paymentMethod"
+                                            value={clientForm.paymentMethod}
+                                            onChange={handleClientFormChange}
+                                            className={inputClasses}
+                                            required
+                                        >
+                                            <option value="mbw">MB Way</option>
+                                            <option value="mb">Multibanco</option>
+                                            <option value="cc">Cartão de Crédito</option>
+                                            {/* Adicionar outros métodos conforme necessário (Ex: Pagamento ao Motorista) */}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.requests') || 'Pedidos Especiais (Opcional)'}</label>
+                                    <textarea 
+                                        name="special_requests"
+                                        value={clientForm.special_requests}
+                                        onChange={handleClientFormChange}
+                                        rows={3}
+                                        className={inputClasses}
+                                    ></textarea>
+                                </div>
+
+                                {/* Exibir Erro de Pagamento */}
                                 {paymentError && (
-                                    <div className="mt-4 p-3 bg-red-800/70 border border-red-500 rounded-lg text-sm text-white">
-                                        <p>{paymentError}</p>
+                                    <div className="bg-red-900/50 text-red-300 p-4 rounded-lg mb-6 flex items-center">
+                                        <Lock className="w-5 h-5 mr-3" />
+                                        <p className="text-sm font-semibold">{paymentError}</p>
                                     </div>
                                 )}
-                                
-                                <button type="submit" disabled={isSubmittingPayment} className={buttonClasses + " mt-6"}>
-                                    {isSubmittingPayment ? ( <Loader2 className="w-5 h-5 animate-spin mr-3" /> ) : ( <> {t('booking.confirmAndPay') || 'Confirmar Reserva e Pagar'} <Lock className="w-5 h-5 ml-2" /> </> )}
+
+                                <button 
+                                    type="submit" 
+                                    className={buttonClasses} 
+                                    disabled={isSubmittingPayment}
+                                >
+                                    {isSubmittingPayment ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                                            {t('booking.submitting') || 'A Processar Reserva...'}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {t('booking.confirmAndPay') || 'Confirmar Reserva e Pagar'}
+                                            <ArrowRight className="w-5 h-5 ml-2" />
+                                        </>
+                                    )}
                                 </button>
                             </form>
                         )}
+                        
                     </div>
                 </ElectricBorder>
               )}
-
+              
               {/* PASSO 6: Confirmação Final */}
-              {currentStep === 6 && reservationResponse && (
-                <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-                    <div className={`${cardBg} rounded-xl shadow-2xl p-8 text-center`}>
-                        <Check className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                        <h2 className="text-4xl font-extrabold text-white mb-2">{t('booking.successTitle') || 'Reserva Confirmada!'}</h2>
-                        <p className="text-lg text-gray-300 mb-6">{reservationResponse.message || t('booking.successMessage')}</p>
-                        
-                        <div className="mb-8 p-4 bg-gray-900/90 rounded-lg inline-block text-left">
-                             <p className="font-semibold text-amber-400">{t('booking.reservationId')}: <span className="text-white ml-2">{reservationResponse.reservation.id}</span></p>
-                             <p className="font-semibold text-amber-400">{t('booking.pickupTime')}: <span className="text-white ml-2">{new Date(reservationResponse.reservation.trip_pickup_time).toLocaleString()}</span></p>
-                        </div>
-                        
-                        <div className="mt-8">
-                            <button onClick={() => navigate('/')} className="bg-amber-400 text-gray-900 px-8 py-3 rounded-full font-bold hover:bg-amber-300 transition-colors">
-                                {t('booking.backHome') || 'Voltar à Página Inicial'}
-                            </button>
-                        </div>
-                    </div>
-                </ElectricBorder>
+              {currentStep === 6 && (
+                <div className="p-10 bg-black/80 border border-gray-800 rounded-xl shadow-2xl text-center">
+                    <Check className="w-16 h-16 text-green-500 mx-auto mb-6" />
+                    <h2 className="text-4xl font-extrabold text-white mb-4">{t('booking.finalConfirmation') || 'Reserva Finalizada!'}</h2>
+                    <p className="text-xl text-gray-300 mb-8">
+                        {t('booking.checkEmail') || 'Receberá todos os detalhes da sua viagem e confirmação de pagamento no seu email em breve.'}
+                    </p>
+                    
+                    {reservationResponse?.reservation?.id && (
+                        <p className="text-lg text-amber-400 font-bold mb-8">
+                            {t('booking.reservationId') || 'ID da Sua Reserva'}: #{reservationResponse.reservation.id}
+                        </p>
+                    )}
+
+                    <button 
+                        onClick={() => navigate('/')} 
+                        className="inline-flex items-center bg-amber-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors"
+                    >
+                        {t('booking.returnHome') || 'Voltar à Página Inicial'}
+                    </button>
+                </div>
+              )}
+              
+              {/* Fallback de Erro de Passo */}
+              {currentStep > 6 && (
+                <div className="p-8 bg-red-900/40 border border-red-700 rounded-xl text-center">
+                    <p className="text-xl text-red-300">{t('booking.stepError') || 'Erro no fluxo de passos. Por favor, comece novamente.'}</p>
+                    <button onClick={() => setCurrentStep(1)} className="mt-4 text-amber-400 hover:underline">Iniciar Reserva</button>
+                </div>
               )}
 
             </div>
