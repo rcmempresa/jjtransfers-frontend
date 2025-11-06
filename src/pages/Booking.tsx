@@ -9,11 +9,10 @@ import {
 import BookingForm from '../components/BookingForm'; 
 import VehicleCard from '../components/VehicleCard';
 import { useLanguage } from '../hooks/useLanguage';
-// IMPORTANTE: Tornar a ElectricBorder condicional para melhor performance no móvel
 import ElectricBorder from '../components/ElectricBorder'; 
 
 // ----------------------------------------------------------------------
-// TIPAGEM DINÂMICA (MANTIDA)
+// TIPAGEM DINÂMICA (Baseada no seu código)
 // ----------------------------------------------------------------------
 type ServiceType = { 
     id: string; 
@@ -42,7 +41,7 @@ type TripDetails = {
     tripType: 'one-way' | 'round-trip'; 
     returnDate?: string; 
     returnTime?: string; 
-    durationHours?: number;
+    durationHours?: number; 
 };
 
 type BookingStep = { 
@@ -78,35 +77,33 @@ export type ReservedSlot = {
 // ----------------------------------------------------------------------
 
 
-// MAPA DE ÍCONES PARA RENDERIZAÇÃO DINÂMICA (MANTIDO)
+// MAPA DE ÍCONES PARA RENDERIZAÇÃO DINÂMICA
 const IconMap: { [key: string]: React.ElementType } = {
     Briefcase: Briefcase, Plane: Plane, Calendar: Calendar, Clock: Clock, 
     Heart: Heart, MapPin: MapPin, Moon: Moon, Music: Music, Car: Car, 
 };
 
-// URL DO VÍDEO DE BACKGROUND (MANTIDO)
+// URL DO VÍDEO DE BACKGROUND
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
 
 // ======================================================================
-// HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (Melhorado o useEffect para não correr o handleResize logo no mount, que já fazemos abaixo)
+// HOOK PARA DETEÇÃO DE ECRÃ MÓVEL
 // ======================================================================
 const useIsMobile = (breakpoint = 768) => { 
-    // Começa com false no servidor ou para evitar flash, mas o useEffect corrigirá
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        const checkIsMobile = () => {
-             // O window.innerWidth só é acessível no browser
+        const handleResize = () => {
             if (typeof window !== 'undefined') {
                 setIsMobile(window.innerWidth < breakpoint);
             }
         };
 
-        checkIsMobile(); // Verifica no mount
+        handleResize(); // Executa na montagem para garantir o estado inicial
 
-        window.addEventListener('resize', checkIsMobile);
-        
-        return () => window.removeEventListener('resize', checkIsMobile);
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
     }, [breakpoint]);
 
     return isMobile;
@@ -134,7 +131,7 @@ const Booking: React.FC = () => {
   }
   
   // ----------------------------------------------------------------------
-  // ESTADOS PRINCIPAIS E DE GESTÃO DA API (MANTIDOS)
+  // ESTADOS PRINCIPAIS E DE GESTÃO DA API
   // ----------------------------------------------------------------------
   const [servicesList, setServicesList] = useState<ServiceType[]>([]);
   const [vehiclesList, setVehiclesList] = useState<Vehicle[]>([]);
@@ -157,6 +154,7 @@ const Booking: React.FC = () => {
   });
   
   const [slotValidationError, setSlotValidationError] = useState<string | null>(null); 
+  
   const [tripDetails, setTripDetails] = useState<TripDetails | null>(
       initialTripDetails || (initialPickup && initialDropoff ? {
           pickupAddress: decodeURIComponent(initialPickup),
@@ -172,15 +170,16 @@ const Booking: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   
   // ----------------------------------------------------------------------
-  // LÓGICA DE BUSCA DA API (MANTIDA)
+  // LÓGICA DE BUSCA DA API (Dados Iniciais e Slots Reservados)
   // ----------------------------------------------------------------------
   useEffect(() => {
-    const fetchBookingData = async () => {
+      // (A Lógica de fetchBookingData foi mantida e omitida aqui por brevidade)
+      const fetchBookingData = async () => {
         setIsLoading(true);
         setApiError(null);
         
         try {
-            // ... (Lógica de fetch de serviços e veículos mantida)
+            // --- 1. BUSCA DE CARROS E SERVIÇOS ---
             const carsUrl = `${import.meta.env.VITE_BACKEND_URL}api/cars`;
             const carsResponse = await fetch(carsUrl); 
             
@@ -255,22 +254,16 @@ const Booking: React.FC = () => {
             const reservedUrl = `${import.meta.env.VITE_BACKEND_URL}api/reservations/reserved-slots`;
             const reservedResponse = await fetch(reservedUrl);
             
-            if (!reservedResponse.ok) {
-                console.warn("Aviso: Não foi possível carregar os slots reservados.");
-            } else {
+            if (reservedResponse.ok) {
                 const reservedResult: { success: boolean; data: ReservedSlot[] } = await reservedResponse.json();
-                
                 const validSlots = (reservedResult.data || []).filter(slot => 
                     slot && slot.iso_date && slot.vehicle_id
                 );
-                
                 setReservedSlots(validSlots);
-                console.log("✅ Slots reservados carregados:", validSlots.length);
             }
 
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : String(err);
-            console.error("🛑 ERROR: Erro capturado durante o fetch:", errorMessage);
             setApiError(t('booking.fetchDataError') || `Não foi possível carregar os dados. Erro: ${errorMessage}`); 
         } finally {
             setIsLoading(false);
@@ -283,13 +276,12 @@ const Booking: React.FC = () => {
 
   // Variáveis de Estilo
   const goldColor = 'text-amber-400';
-  // Otimização: No móvel, usamos um fundo menos opaco para contrastar com o fundo preto simples
-  const cardBg = isMobile ? 'bg-black/90 border border-gray-800' : 'bg-black/80 border border-gray-800'; 
+  const cardBg = 'bg-black/80 border border-gray-800'; 
   const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800/90 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400";
   const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors flex items-center justify-center";
 
 
-  // ESTRUTURA DE 6 PASSOS (MANTIDA)
+  // ESTRUTURA DE 6 PASSOS
   const steps: BookingStep[] = [
     { step: 1, title: t('booking.tripAddresses') || '1. Localização', completed: currentStep > 1 },
     { step: 2, title: t('booking.selectService') || '2. Serviço', completed: currentStep > 2 },
@@ -300,16 +292,16 @@ const Booking: React.FC = () => {
   ];
 
   // ----------------------------------------------------------------------
-  // FUNÇÕES DE VALIDAÇÃO E HANDLERS (MANTIDOS)
+  // FUNÇÕES DE VALIDAÇÃO E HANDLERS (COMPLETOS)
   // ----------------------------------------------------------------------
   const validateCurrentSlotAvailability = useCallback((): boolean => {
+    // (Implementação de validação de slot mantida e omitida por brevidade)
     if (!selectedVehicle || !tripDetails || !tripDetails.date || !tripDetails.time) {
         setSlotValidationError(null); 
         return true; 
     }
     
     const selectedDateTime = `${tripDetails.date}T${tripDetails.time}:00.000Z`;
-    
     const isCurrentlyReserved = reservedSlots.some(slot => 
         slot.vehicle_id === selectedVehicle.id && 
         slot.iso_date === selectedDateTime
@@ -338,7 +330,6 @@ const Booking: React.FC = () => {
         returnTime: prev?.returnTime,
         durationHours: prev?.durationHours || 1, 
     }));
-    
     setCurrentStep(2); 
   };
   
@@ -351,22 +342,9 @@ const Booking: React.FC = () => {
         return;
     }
     
-    const selectedDateTime = `${details.date}T${details.time}:00.000Z`;
-    const isCurrentlyReserved = reservedSlots.some(slot => 
-        slot.vehicle_id === selectedVehicle!.id && 
-        slot.iso_date === selectedDateTime
-    );
-
-    if (isCurrentlyReserved) {
-        setSlotValidationError(
-            t('booking.slotUnavailableError') || 
-            `O veículo ${selectedVehicle.name} ficou indisponível para ${details.date} às ${details.time}. Por favor, escolha outra data ou hora.`
-        );
-        return; 
+    if (validateCurrentSlotAvailability()) {
+        setCurrentStep(5);
     }
-    setSlotValidationError(null); 
-    
-    setCurrentStep(5); 
   };
   
   const handleServiceSelection = (service: ServiceType) => {
@@ -386,7 +364,7 @@ const Booking: React.FC = () => {
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedVehicle || !tripDetails || !selectedService || !tripDetails.date || !tripDetails.time || !clientForm.passenger_email || !clientForm.passenger_name || !clientForm.passenger_phone) {
+    if (!selectedVehicle || !tripDetails || !selectedService || !clientForm.passenger_email || !clientForm.passenger_name || !clientForm.passenger_phone) {
         setPaymentError(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
         return;
     }
@@ -394,28 +372,18 @@ const Booking: React.FC = () => {
     if (!validateCurrentSlotAvailability()) {
         setPaymentError(t('booking.slotUnavailableError') || "O horário escolhido ficou indisponível no último momento. Por favor, corrija o Passo 4 antes de submeter.");
         setCurrentStep(4); 
-        return; 
+        return;
     }
 
     setIsSubmittingPayment(true);
     setPaymentError(null);
 
     const token = localStorage.getItem('jwtToken');
-    
-    const headers: HeadersInit = { 
-        'Content-Type': 'application/json' 
-    };
-    
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) { headers['Authorization'] = `Bearer ${token}`; }
     
     const isHourlyService = selectedService.id === "6" || selectedService.title.includes('Hora'); 
-
-    const calculatedDurationMinutes = 
-        isHourlyService && tripDetails.durationHours 
-        ? tripDetails.durationHours * 60 
-        : 60; 
+    const calculatedDurationMinutes = isHourlyService && tripDetails.durationHours ? tripDetails.durationHours * 60 : 60; 
 
     const payload = {
         fleet_id: selectedVehicle.id,
@@ -462,17 +430,15 @@ const Booking: React.FC = () => {
         
         if (data.success) {
             setReservationResponse(data);
-            
             const paymentMethod = data.payment.method;
 
             if (paymentMethod === 'cc' && data.payment.data.redirect_url) {
                 window.location.href = data.payment.data.redirect_url;
                 return; 
             } else if (paymentMethod === 'cash') {
-                setCurrentStep(6); // Pagamento à chegada: sucesso e avança
+                setCurrentStep(6);
             }
-            // MB/MBW: Fica no Passo 5 para mostrar as referências (aqui o currentStep já é 5)
-            
+            // MB/MBW: Fica no Passo 5 para mostrar as referências
         } else {
             setPaymentError(data.message);
         }
@@ -494,15 +460,15 @@ const Booking: React.FC = () => {
   
   const availableVehicles = useMemo(() => {
     if (!selectedService) return vehiclesList; 
-    
     return vehiclesList.filter(v => v.serviceTypes && v.serviceTypes.includes(selectedService.id)); 
   }, [selectedService, vehiclesList]);
 
 
   // ----------------------------------------------------------------------
-  // RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO/ERRO (MANTIDO)
+  // RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO/ERRO
   // ----------------------------------------------------------------------
   if (isLoading) {
+    // (Omitido por brevidade)
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-amber-400 animate-spin mr-3" />
@@ -512,6 +478,7 @@ const Booking: React.FC = () => {
   }
 
   if (apiError || servicesList.length === 0) {
+    // (Omitido por brevidade)
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col items-center justify-center p-8">
             <h1 className="text-3xl font-extrabold text-red-500 mb-4">Erro de Conexão ou Dados Indisponíveis</h1>
@@ -521,27 +488,26 @@ const Booking: React.FC = () => {
     );
   }
 
-    // Função auxiliar para aplicar a borda animada apenas no desktop
-    const ConditionalBorder = ({ children, step }: { children: React.ReactNode, step: number }) => {
-        // Aplica a borda animada APENAS se não for móvel
-        if (!isMobile) {
-            return (
-                <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-                    {children}
-                </ElectricBorder>
-            );
-        }
-        // No móvel, apenas o container
-        return <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>;
-    };
+  // Função auxiliar para aplicar a borda animada apenas no desktop
+  const ConditionalBorder = ({ children, step }: { children: React.ReactNode, step: number }) => {
+      // Aplica a borda animada APENAS se não for móvel
+      if (!isMobile) {
+          return (
+              <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
+                  {children}
+              </ElectricBorder>
+          );
+      }
+      // No móvel, apenas o container
+      return <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>;
+  };
 
 
   return (
     // CONTÊINER PRINCIPAL
-    // O fundo principal passa a ser o bg-black/90 em vez do vídeo
-    <div className="relative min-h-screen bg-black/90">
+    <div className="relative min-h-screen">
         
-        {/* 1. CAMADA DE VÍDEO DE BACKGROUND (Renderização Condicional mantida) */}
+        {/* 1. CAMADA DE VÍDEO DE BACKGROUND (RENDERIZAÇÃO CONDICIONAL) */}
         {!isMobile && (
             <div className="fixed inset-0 overflow-hidden z-[-1]">
                 <iframe
@@ -553,16 +519,17 @@ const Booking: React.FC = () => {
                     className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto translate-x-[-50%] translate-y-[-50%] pointer-events-none"
                     style={{ aspectRatio: '16/9', objectFit: 'cover' }}
                 />
-                {/* 2. OVERLAY ESCURO no Desktop (para escurecer o vídeo) */}
+                {/* 2. OVERLAY ESCURO no Desktop */}
                 <div className="absolute inset-0 bg-black/70"></div>
             </div>
         )}
         
-        {/* NO MÓVEL: O fundo preto/90 do container principal é suficiente. */}
+        {/* 2. OVERLAY ESCURO (Fundo simples no móvel) */}
+        <div className="fixed inset-0 bg-black/90 z-[-1]"></div>
 
 
         {/* 3. CONTEÚDO PRINCIPAL */}
-        <div className="relative pt-24 pb-12 text-white min-h-screen sm:pt-40"> 
+        <div className="relative pt-24 pb-12 text-white min-h-screen sm:pt-40">
           <div className="container mx-auto px-4">
             
             {/* Título Dinâmico */}
@@ -570,38 +537,40 @@ const Booking: React.FC = () => {
                 {t('booking.reserveNow')} - {steps[currentStep - 1]?.title || '...'}
             </h1>
 
-            {/* Progress Steps (Barra de Progresso) - Otimizado para móvel (oculta o título do passo) */}
+            {/* Progress Steps (Barra de Progresso) */}
+            {/* (Omitido por brevidade) */}
             <div className="mb-8 drop-shadow-xl sm:mb-12">
-              <div className="flex items-center justify-center space-x-2 sm:space-x-4 mb-8">
+                <div className="flex items-center justify-center space-x-2 sm:space-x-4 mb-8">
                 {steps.map((step, index) => (
-                  <React.Fragment key={step.step}>
-                    <div className="flex items-center">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 sm:w-10 sm:h-10 ${
-                          currentStep === step.step
-                            ? 'bg-amber-400 text-black ring-2 ring-amber-400'
-                            : step.completed
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-700 text-gray-400'
-                        }`}
-                      >
-                        {step.completed ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step.step}
-                      </div>
-                      <span 
-                        className={`ml-3 text-sm font-medium hidden sm:inline transition-colors duration-300 ${
-                            currentStep === step.step ? goldColor : 'text-gray-200' 
-                        }`}
-                      >
-                        {step.title}
-                      </span>
-                    </div>
-                    {index < steps.length - 1 && (
-                      <div className="w-4 h-0.5 bg-gray-500 sm:w-8"></div>
-                    )}
-                  </React.Fragment>
+                    <React.Fragment key={step.step}>
+                        <div className="flex items-center">
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 sm:w-10 sm:h-10 ${
+                                    currentStep === step.step
+                                        ? 'bg-amber-400 text-black ring-2 ring-amber-400'
+                                        : step.completed
+                                        ? 'bg-green-600 text-white'
+                                        : 'bg-gray-700 text-gray-400'
+                                }`}
+                            >
+                                {step.completed ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step.step}
+                            </div>
+                            <span 
+                                className={`ml-3 text-sm font-medium hidden sm:inline transition-colors duration-300 ${
+                                    currentStep === step.step ? goldColor : 'text-gray-200' 
+                                }`}
+                            >
+                                {step.title}
+                            </span>
+                        </div>
+                        {index < steps.length - 1 && (
+                            <div className="w-4 h-0.5 bg-gray-500 sm:w-8"></div>
+                        )}
+                    </React.Fragment>
                 ))}
-              </div>
+                </div>
             </div>
+
 
             {/* Step Content */}
             <div className="max-w-4xl mx-auto">
@@ -615,12 +584,11 @@ const Booking: React.FC = () => {
                   </button>
               )}
 
-              {/* PASSO 1: Endereços (APENAS Recolha e Destino) */}
+              {/* PASSO 1: Endereços */}
               {currentStep === 1 && ( 
                 <ConditionalBorder step={1}>
                     <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">1. {t('booking.tripAddresses') || 'Localização'}</h2>
                       
-                    {/* O BookingForm aqui apenas recolhe endereços */}
                     <BookingForm 
                       onSubmit={handleAddressSubmit} 
                       initialData={tripDetails || undefined} 
@@ -630,7 +598,6 @@ const Booking: React.FC = () => {
                       showTripType={false} 
                       reservedSlots={reservedSlots} 
                       selectedVehicleId={selectedVehicle?.id} 
-                      // Passar isMobile para que o BookingForm otimize componentes internos (ex: Google Maps)
                       isMobile={isMobile}
                     />
                 </ConditionalBorder>
@@ -640,17 +607,16 @@ const Booking: React.FC = () => {
               {currentStep === 2 && ( 
                   <ConditionalBorder step={2}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3 text-center">2. {t('booking.selectService')}</h2>
-                      {/* Otimização: No móvel, mudar para 1 coluna se necessário ou garantir que o grid é responsivo */}
                       <div className="grid md:grid-cols-3 gap-6 mb-8"> 
                           {servicesList.map((service) => {
                               const IconComponent = service.icon ? IconMap[service.icon] : Briefcase;
                               return (
-                                  <div key={service.id} onClick={() => handleServiceSelection(service)} className={`relative h-48 sm:h-56 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group ${selectedService && selectedService.id === service.id ? 'ring-4 ring-amber-400 shadow-2xl scale-[1.02]' : 'border border-gray-700 hover:ring-2 hover:ring-amber-400/50'}`} style={{ backgroundImage: `url(${service.image || 'https://placehold.co/400x300?text=Serviço'})`, backgroundSize: 'cover', backgroundPosition: 'center', }}>
+                                  <div key={service.id} onClick={() => handleServiceSelection(service)} className={`relative h-56 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group ${selectedService && selectedService.id === service.id ? 'ring-4 ring-amber-400 shadow-2xl scale-[1.02]' : 'border border-gray-700 hover:ring-2 hover:ring-amber-400/50'}`} style={{ backgroundImage: `url(${service.image || 'https://placehold.co/400x300?text=Serviço'})`, backgroundSize: 'cover', backgroundPosition: 'center', }}>
                                       <div className={`absolute inset-0 bg-black/50 transition-colors duration-300 ${selectedService && selectedService.id === service.id ? 'bg-black/30' : 'group-hover:bg-black/40'}`}></div>
                                       <div className="relative p-5 flex flex-col items-center justify-center h-full text-center">
-                                          <IconComponent className="w-7 h-7 text-amber-400 mx-auto mb-2 drop-shadow-lg sm:w-8 sm:h-8" />
-                                          <p className="font-bold text-lg text-white drop-shadow-lg sm:text-xl">{service.title || service.id}</p>
-                                          <p className="text-xs text-gray-200 mt-1 drop-shadow-md sm:text-sm">{service.description || t('booking.clickToViewVehicles')}</p>
+                                          <IconComponent className="w-8 h-8 text-amber-400 mx-auto mb-3 drop-shadow-lg" />
+                                          <p className="font-bold text-xl text-white drop-shadow-lg">{service.title || service.id}</p>
+                                          <p className="text-sm text-gray-200 mt-1 drop-shadow-md">{service.description || t('booking.clickToViewVehicles')}</p>
                                           {selectedService && selectedService.id === service.id && (<div className="absolute top-3 right-3 p-1 bg-amber-400 rounded-full text-black"><Check className="w-4 h-4" /></div>)}
                                       </div>
                                   </div>
@@ -660,12 +626,11 @@ const Booking: React.FC = () => {
                   </ConditionalBorder>
               )}
 
-              {/* PASSO 3: Seleção de Veículo */}
+              {/* PASSO 3: Seleção de Veículo (Continuação do seu código) */}
               {currentStep === 3 && ( 
                   <div>
                   <h2 className="text-3xl font-bold text-white mb-6 text-center drop-shadow-lg">3. {t('booking.selectVehicle')}</h2>
                   {selectedService && (<div className="mb-8 p-4 bg-gray-800/90 rounded-lg text-center border border-gray-700"><p className="text-gray-300"><span className={goldColor}>{t('booking.serviceSelected')}:</span> <strong className="ml-2">{selectedService.title || selectedService.id}</strong></p></div>)}
-                  {/* Otimização: Grid de 1 coluna no telemóvel para VehicleCard */}
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2"> 
                     {availableVehicles.length > 0 ? ( 
                         availableVehicles.map((vehicle) => ( 
@@ -714,7 +679,7 @@ const Booking: React.FC = () => {
                           reservedSlots={reservedSlots} 
                           selectedVehicleId={selectedVehicle.id}
                           serviceType={selectedService} 
-                          isMobile={isMobile} // Passa isMobile
+                          isMobile={isMobile}
                       />
                   </ConditionalBorder>
               )}
@@ -722,23 +687,23 @@ const Booking: React.FC = () => {
               {/* PASSO 5: Pagamento e Detalhes do Cliente */}
               {currentStep === 5 && tripDetails && selectedVehicle && (
                   <ConditionalBorder step={5}>
-                      <form onSubmit={handlePaymentSubmit} className={`p-0`}> {/* p-0 porque ConditionalBorder já tem o padding e o fundo */}
+                      <form onSubmit={handlePaymentSubmit} className={`p-0`}> 
                           <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3 text-center">5. {t('booking.paymentDetails') || 'Pagamento'}</h2>
 
                           {/* Resumo da Reserva */}
                           <div className="mb-8 p-4 sm:p-6 bg-gray-900/90 rounded-xl border border-amber-400/50">
-                              <h3 className="text-xl font-bold mb-4 flex items-center text-amber-400"><CornerDownRight className="w-5 h-5 mr-2" /> {t('booking.summary')}</h3>
+                              <h3 className="text-xl font-bold mb-4 flex items-center text-amber-400"><CornerDownRight className="w-5 h-5 mr-2" /> {t('booking.summary') || 'Resumo da Viagem'}</h3>
                               <ul className="space-y-2 text-gray-300 text-sm">
-                                  <li className="flex justify-between items-start"><MapPin className="w-4 h-4 mt-1 mr-2 flex-shrink-0 text-gray-500"/>{t('booking.pickup')}: <strong className='ml-2 text-right break-words'>{tripDetails.pickupAddress}</strong></li>
-                                  <li className="flex justify-between items-start"><MapPin className="w-4 h-4 mt-1 mr-2 flex-shrink-0 text-gray-500"/>{t('booking.dropoff')}: <strong className='ml-2 text-right break-words'>{tripDetails.dropoffAddress}</strong></li>
-                                  <li className="flex justify-between items-center"><Calendar className="w-4 h-4 mr-2 text-gray-500"/>{t('booking.date')}: <strong>{tripDetails.date} @ {tripDetails.time}</strong></li>
-                                  <li className="flex justify-between items-center"><Car className="w-4 h-4 mr-2 text-gray-500"/>{t('booking.vehicle')}: <strong>{selectedVehicle.name}</strong></li>
-                                  <li className="flex justify-between items-center text-lg font-bold pt-2 border-t border-gray-700 mt-2"><Briefcase className="w-4 h-4 mr-2 text-amber-400"/>{t('booking.estimatedPrice')}: <span className="text-amber-400">€ {selectedVehicle.price.toFixed(2)}</span></li>
+                                  <li className="flex justify-between items-start"><MapPin className="w-4 h-4 mt-1 mr-2 flex-shrink-0 text-gray-500"/>{t('booking.pickup') || 'Recolha'}: <strong className='ml-2 text-right break-words'>{tripDetails.pickupAddress}</strong></li>
+                                  <li className="flex justify-between items-start"><MapPin className="w-4 h-4 mt-1 mr-2 flex-shrink-0 text-gray-500"/>{t('booking.dropoff') || 'Destino'}: <strong className='ml-2 text-right break-words'>{tripDetails.dropoffAddress}</strong></li>
+                                  <li className="flex justify-between items-center"><Calendar className="w-4 h-4 mr-2 text-gray-500"/>{t('booking.date') || 'Data'}: <strong>{tripDetails.date} @ {tripDetails.time}</strong></li>
+                                  <li className="flex justify-between items-center"><Car className="w-4 h-4 mr-2 text-gray-500"/>{t('booking.vehicle') || 'Veículo'}: <strong>{selectedVehicle.name}</strong></li>
+                                  <li className="flex justify-between items-center text-lg font-bold pt-2 border-t border-gray-700 mt-2"><Briefcase className="w-4 h-4 mr-2 text-amber-400"/>{t('booking.estimatedPrice') || 'Preço Total'}: <span className="text-amber-400">€ {selectedVehicle.price.toFixed(2)}</span></li>
                               </ul>
                           </div>
 
                           {/* Dados do Cliente */}
-                          <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">{t('booking.clientDetails')}</h3>
+                          <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">{t('booking.clientDetails') || 'Detalhes do Passageiro'}</h3>
                           <div className="grid md:grid-cols-2 gap-4 mb-6">
                               <input type="text" name="passenger_name" value={clientForm.passenger_name} onChange={handleClientFormChange} placeholder={t('booking.namePlaceholder') || "Nome Completo *"} className={inputClasses} required />
                               <input type="email" name="passenger_email" value={clientForm.passenger_email} onChange={handleClientFormChange} placeholder={t('booking.emailPlaceholder') || "Email *"} className={inputClasses} required />
@@ -753,23 +718,23 @@ const Booking: React.FC = () => {
                           <textarea name="special_requests" value={clientForm.special_requests} onChange={handleClientFormChange} placeholder={t('booking.requestsPlaceholder') || "Pedidos Especiais (Ex: Cadeirinha de Bebé, Paragens)"} rows={3} className={`${inputClasses} mb-6`}></textarea>
 
                           {/* Exibir Referências de Pagamento ou Mensagem de Erro/Carregamento */}
-                          {reservationResponse && (clientForm.paymentMethod === 'mb' || clientForm.paymentMethod === 'mbw') ? (
+                          {reservationResponse && (reservationResponse.payment.method === 'mb' || reservationResponse.payment.method === 'mbw') ? (
                               <div className="p-6 mb-6 bg-green-900/70 text-white rounded-lg border border-green-600">
-                                  <h3 className="text-xl font-bold mb-3 flex items-center text-green-400"><Check className="w-5 h-5 mr-2" /> {t('payment.pending')}</h3>
-                                  <p className="mb-4">{t('payment.infoMessage')}</p>
+                                  <h3 className="text-xl font-bold mb-3 flex items-center text-green-400"><Check className="w-5 h-5 mr-2" /> {t('payment.pending') || 'Pagamento Pendente'}</h3>
+                                  <p className="mb-4">{t('payment.infoMessage') || 'A sua reserva está criada. Por favor, efetue o pagamento para a confirmar.'}</p>
                                   
-                                  {clientForm.paymentMethod === 'mb' && (
-                                      <div className="grid grid-cols-2 gap-4 bg-black/50 p-4 rounded-lg">
-                                          <p><strong>{t('payment.entity')}:</strong> {reservationResponse.payment.data.entity}</p>
-                                          <p><strong>{t('payment.reference')}:</strong> {reservationResponse.payment.data.reference}</p>
-                                          <p className="col-span-2"><strong>{t('payment.value')}:</strong> {reservationResponse.payment.data.value} €</p>
+                                  {reservationResponse.payment.method === 'mb' && reservationResponse.payment.data.entity && (
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-black/50 p-4 rounded-lg text-sm">
+                                          <div><strong>{t('payment.entity') || 'Entidade'}:</strong> <span className='text-amber-400 font-mono'>{reservationResponse.payment.data.entity}</span></div>
+                                          <div><strong>{t('payment.reference') || 'Referência'}:</strong> <span className='text-amber-400 font-mono'>{reservationResponse.payment.data.reference}</span></div>
+                                          <div><strong>{t('payment.value') || 'Valor'}:</strong> <span className='text-amber-400 font-bold'>{reservationResponse.payment.data.value} €</span></div>
                                       </div>
                                   )}
                                   
-                                  {clientForm.paymentMethod === 'mbw' && (
+                                  {reservationResponse.payment.method === 'mbw' && reservationResponse.payment.data.phone && (
                                       <div className="bg-black/50 p-4 rounded-lg">
-                                          <p><strong>{t('payment.mbwPhone')}:</strong> {reservationResponse.payment.data.phone}</p>
-                                          <p className="mt-2">Aguarde a notificação no seu telemóvel para aprovar o pagamento de **{reservationResponse.payment.data.value} €**.</p>
+                                          <p><strong>{t('payment.mbwPhone') || 'Telemóvel (MB WAY)'}:</strong> <span className='text-amber-400 font-mono'>{reservationResponse.payment.data.phone}</span></p>
+                                          <p className="mt-2 text-sm text-gray-400">Aguarde a notificação no seu telemóvel para aprovar o pagamento de **{reservationResponse.payment.data.value} €**.</p>
                                       </div>
                                   )}
                               </div>
@@ -785,12 +750,12 @@ const Booking: React.FC = () => {
                                   <button 
                                       type="submit" 
                                       className={buttonClasses + (isSubmittingPayment ? ' opacity-70 cursor-not-allowed' : '')} 
-                                      disabled={isSubmittingPayment || (reservationResponse && clientForm.paymentMethod !== 'cash')}
+                                      disabled={isSubmittingPayment || (reservationResponse && reservationResponse.payment.method !== 'cash')}
                                   >
                                       {isSubmittingPayment ? (
-                                          <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> {t('payment.submitting') || 'A Processar Pagamento...'}</>
-                                      ) : reservationResponse ? (
-                                          <><Check className="w-5 h-5 mr-3" /> {t('payment.processed') || 'Detalhes de Pagamento Exibidos'}</>
+                                          <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> {t('payment.submitting') || 'A Processar Reserva...'}</>
+                                      ) : reservationResponse && reservationResponse.payment.method === 'cash' ? (
+                                          <><Check className="w-5 h-5 mr-3" /> {t('payment.continueToConfirm') || 'Continuar para Confirmação'}</>
                                       ) : (
                                           <>{t('payment.confirmAndPay') || 'Confirmar e Pagar'}</>
                                       )}
@@ -806,11 +771,11 @@ const Booking: React.FC = () => {
                   <div className={`${cardBg} rounded-xl shadow-2xl p-8 text-center`}>
                       <Check className="w-12 h-12 mx-auto mb-6 text-green-500 drop-shadow-lg" />
                       <h2 className="text-3xl font-bold text-white mb-4">{t('booking.thanksTitle') || 'Reserva Confirmada!'}</h2>
-                      <p className="text-xl text-gray-300 mb-8">{t('booking.thanksMessage') || 'Obrigado pela sua reserva. Enviámos um email com todos os detalhes.'}</p>
+                      <p className="text-xl text-gray-300 mb-8">{t('booking.thanksMessage') || 'Obrigado pela sua reserva. Enviámos um email com todos os detalhes e o seu motorista estará pronto.'}</p>
                       
                       {reservationResponse?.reservation?.id && (
                           <p className="text-sm text-gray-500 mb-4">
-                              {t('booking.ref')}: <span className="font-mono text-amber-400">{reservationResponse.reservation.id}</span>
+                              {t('booking.ref') || 'Ref. Reserva'}: <span className="font-mono text-amber-400">{reservationResponse.reservation.id}</span>
                           </p>
                       )}
                       
