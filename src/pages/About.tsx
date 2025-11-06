@@ -154,7 +154,7 @@ const About: React.FC = () => {
           </div>
           <div>
             <img
-              src="/src/assets/madeira_imagem_2.jpg"
+              src="/assets/madeira_imagem_2.jpg"
               alt="Viagem de Luxo na Madeira"
               className="rounded-lg shadow-2xl w-full h-96 object-cover"
             />

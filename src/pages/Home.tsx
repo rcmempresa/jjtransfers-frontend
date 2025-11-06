@@ -78,22 +78,22 @@ const Home: React.FC = () => {
   // Hero carousel images - DEFINIÇÃO LOCAL
   const heroSlides = [
     {
-      image: '/src/assets/WhatsApp Image 2025-09-19 at 12.04.49.jpeg',
+      image: '/assets/WhatsApp Image 2025-09-19 at 12.04.49.jpeg',
       title: t('hero.carousel.slide1.title'),
       subtitle: t('hero.carousel.slide1.subtitle')
     },
     {
-      image: '/src/assets/WhatsApp Image 2025-09-19 at 12.03.20.jpeg',
+      image: '/assets/WhatsApp Image 2025-09-19 at 12.03.20.jpeg',
       title: t('hero.carousel.slide2.title'),
       subtitle: t('hero.carousel.slide2.subtitle')
     },
     {
-      image: '/src/assets/WhatsApp Image 2025-09-19 at 12.04.54.jpeg',
+      image: '/assets/WhatsApp Image 2025-09-19 at 12.04.54.jpeg',
       title: t('hero.carousel.slide3.title'),
       subtitle: t('hero.carousel.slide3.subtitle')
     },
     {
-      image: '/src/assets/WhatsApp Image 2025-09-19 at 12.07.00 (1).jpeg',
+      image: '/assets/WhatsApp Image 2025-09-19 at 12.07.00 (1).jpeg',
       title: t('hero.carousel.slide4.title'),
       subtitle: t('hero.carousel.slide4.subtitle')
     }
@@ -581,7 +581,7 @@ const Home: React.FC = () => {
             {/* Vantagem 1: Natureza Exuberante */}
             <div className="text-center group p-6 rounded-xl transition-all duration-300 hover:bg-gray-700/50">
               <img 
-                src="src/assets/madeira_imagem_3.jpeg" // Ex: Levadas ou Montanhas
+                src="assets/madeira_imagem_3.jpeg" // Ex: Levadas ou Montanhas
                 alt="Levada Walks and Mountains"
                 className="rounded-lg h-56 w-full object-cover shadow-lg mb-4 transform group-hover:scale-[1.02] transition-transform duration-500"
               />
@@ -596,7 +596,7 @@ const Home: React.FC = () => {
             {/* Vantagem 2: Cultura e História */}
             <div className="text-center group p-6 rounded-xl transition-all duration-300 hover:bg-gray-700/50">
               <img 
-                src="src/assets/madeira_imagem_5.jpg" // Ex: Funchal City ou Mercado
+                src="/assets/madeira_imagem_5.jpg" // Ex: Funchal City ou Mercado
                 alt="Funchal City and Culture"
                 className="rounded-lg h-56 w-full object-cover shadow-lg mb-4 transform group-hover:scale-[1.02] transition-transform duration-500"
               />
@@ -611,7 +611,7 @@ const Home: React.FC = () => {
             {/* Vantagem 3: Exclusividade e Luxo */}
             <div className="text-center group p-6 rounded-xl transition-all duration-300 hover:bg-gray-700/50">
               <img 
-                src="src/assets/madeira_imagem_6.jpeg" // Ex: Pôr do Sol ou Vinhas
+                src="/assets/madeira_imagem_6.jpeg" // Ex: Pôr do Sol ou Vinhas
                 alt="Luxury and Exclusivity"
                 className="rounded-lg h-56 w-full object-cover shadow-lg mb-4 transform group-hover:scale-[1.02] transition-transform duration-500"
               />
