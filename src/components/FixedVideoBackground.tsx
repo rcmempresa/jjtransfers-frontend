@@ -9,7 +9,7 @@ const FixedVideoBackground: React.FC = () => {
   const [showFallback, setShowFallback] = useState(true); 
   
   // Imagens de fallback (ajuste os caminhos conforme necessário)
-  const fallbackImage = '/src/assets/WhatsApp Image 2025-09-19 at 12.07.00 (1).jpeg';
+  const fallbackImage = '/assets/WhatsApp Image 2025-09-19 at 12.07.00 (1).jpeg';
 
   // Lógica para lidar com o carregamento do vídeo/fallback
   useEffect(() => {
