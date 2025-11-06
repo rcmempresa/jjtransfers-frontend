@@ -89,13 +89,19 @@ const PaymentImageMap: { [key: string]: string } = {
 
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
 
+// Variáveis de Estilo (Movidas para fora do componente para evitar recriação)
+const goldColor = 'text-amber-400';
+const cardBg = 'bg-black/80 border border-gray-800'; 
+const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800/90 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400";
+const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors flex items-center justify-center";
+
+
 // ======================================================================
-// ✅ OTIMIZAÇÃO DE PERFORMANCE: HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (matchMedia)
+// ✅ HOOK PARA DETEÇÃO DE ECRÃ MÓVEL
 // ======================================================================
 const useIsMobile = (breakpoint = 768) => {
     const mediaQuery = `(max-width: ${breakpoint - 1}px)`;
     
-    // Estado inicial otimizado: tenta obter o valor correto na montagem
     const [isMobile, setIsMobile] = useState(() => {
         if (typeof window !== 'undefined') {
             return window.matchMedia(mediaQuery).matches;
@@ -293,12 +299,6 @@ const Booking: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, navigate, location.search]); 
 
-  // Variáveis de Estilo
-  const goldColor = 'text-amber-400';
-  const cardBg = 'bg-black/80 border border-gray-800'; 
-  const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800/90 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400";
-  const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors flex items-center justify-center";
-
 
   // ESTRUTURA DE 6 PASSOS
   const steps: BookingStep[] = [
@@ -310,31 +310,35 @@ const Booking: React.FC = () => {
     { step: 6, title: t('booking.confirmation') || '6. Confirmação', completed: false },
   ];
 
+  // ✅ MELHORIA: CÁLCULO DO DATETIME SELECIONADO (MEMOIZED)
+  const getSelectedDateTime = useMemo(() => {
+    if (!tripDetails?.date || !tripDetails?.time) return null;
+    return `${tripDetails.date}T${tripDetails.time}:00.000Z`;
+  }, [tripDetails]);
+
   // FUNÇÃO DE VALIDAÇÃO DE DISPONIBILIDADE
   const validateCurrentSlotAvailability = useCallback((): boolean => {
-    if (!selectedVehicle || !tripDetails || !tripDetails.date || !tripDetails.time) {
+    if (!selectedVehicle || !getSelectedDateTime) {
         setSlotValidationError(null); 
         return true; 
     }
     
-    const selectedDateTime = `${tripDetails.date}T${tripDetails.time}:00.000Z`;
-    
     const isCurrentlyReserved = reservedSlots.some(slot => 
         slot.vehicle_id === selectedVehicle.id && 
-        slot.iso_date === selectedDateTime
+        slot.iso_date === getSelectedDateTime
     );
 
     if (isCurrentlyReserved) {
         setSlotValidationError(
             t('booking.slotUnavailableError') || 
-            `O veículo ${selectedVehicle.name} ficou indisponível para ${tripDetails.date} às ${tripDetails.time}. Por favor, escolha outra data ou hora.`
+            `O veículo ${selectedVehicle.name} ficou indisponível para a data e hora selecionadas.`
         );
         return false;
     }
     
     setSlotValidationError(null); 
     return true;
-  }, [selectedVehicle, tripDetails, reservedSlots, t]);
+  }, [selectedVehicle, getSelectedDateTime, reservedSlots, t]);
 
   // --- HANDLERS ---
   const handleAddressSubmit = (details: TripDetails) => {
@@ -354,6 +358,7 @@ const Booking: React.FC = () => {
   const handleDateTimeSubmit = (details: TripDetails) => {
     setTripDetails(details);
     
+    // Verifica se há veículo selecionado ANTES de validar o slot
     if (!selectedVehicle) {
         setSlotValidationError(t('booking.noVehicleTip') || "Por favor, selecione um veículo antes de escolher a data/hora.");
         setCurrentStep(3);
@@ -378,16 +383,18 @@ const Booking: React.FC = () => {
     setCurrentStep(5); 
   };
   
-  const handleServiceSelection = (service: ServiceType) => {
+  // ✅ OTIMIZAÇÃO: useCallback para estabilidade do ServiceCard
+  const handleServiceSelection = useCallback((service: ServiceType) => {
       setSelectedService(service);
       setCurrentStep(3); 
-  };
+  }, []);
 
-  const handleVehicleSelect = (vehicle: Vehicle) => {
+  // ✅ OTIMIZAÇÃO: useCallback para estabilidade do VehicleCard (Principal alvo de lentidão no mobile)
+  const handleVehicleSelect = useCallback((vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     setCurrentStep(4); 
     setShowVehicleWarning(false);
-  };
+  }, []);
 
   const handleClientFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
@@ -402,6 +409,7 @@ const Booking: React.FC = () => {
         return;
     }
     
+    // Usa a função de validação memoizada
     if (!validateCurrentSlotAvailability()) {
         setPaymentError(t('booking.slotUnavailableError') || "O horário escolhido ficou indisponível no último momento. Por favor, corrija o Passo 4 antes de submeter.");
         setCurrentStep(4); 
@@ -501,7 +509,7 @@ const Booking: React.FC = () => {
     return vehiclesList.filter(v => v.serviceTypes && v.serviceTypes.includes(selectedService.id)); 
   }, [selectedService, vehiclesList]);
 
-  // ✅ CÁLCULO DO PREÇO EXIBIDO NO FRONTEND
+  // ✅ CÁLCULO DO PREÇO EXIBIDO NO FRONTEND (MEMOIZED)
   const calculatedPrice = useMemo(() => {
     if (!selectedVehicle || !selectedService || !tripDetails) return 0;
     
@@ -542,7 +550,7 @@ const Booking: React.FC = () => {
     // CONTÊINER PRINCIPAL
     <div className="relative min-h-screen">
         
-        {/* ✅ OTIMIZAÇÃO: CAMADA DE VÍDEO DE BACKGROUND (SÓ CARREGA NO DESKTOP) */}
+        {/* OTIMIZAÇÃO: CAMADA DE VÍDEO DE BACKGROUND (SÓ CARREGA NO DESKTOP) */}
         {!isMobile && (
             <div className="fixed inset-0 overflow-hidden z-[-1]">
                 <iframe
@@ -558,7 +566,7 @@ const Booking: React.FC = () => {
             </div>
         )}
         
-        {/* ✅ OTIMIZAÇÃO: FUNDO ESCURO SIMPLES PARA MOBILE */}
+        {/* OTIMIZAÇÃO: FUNDO ESCURO SIMPLES PARA MOBILE */}
         {isMobile && <div className="fixed inset-0 bg-black/90 z-[-1]"></div>}
 
 
@@ -646,7 +654,7 @@ const Booking: React.FC = () => {
                           {servicesList.map((service) => {
                               const IconComponent = service.icon ? IconMap[service.icon] : Briefcase;
                               
-                              // ✅ OTIMIZAÇÃO: Usar um fundo mais simples no mobile para evitar carregamento de imagens grandes
+                              // OTIMIZAÇÃO: Usar um fundo mais simples no mobile para evitar carregamento de imagens grandes
                               const serviceCardStyle = !isMobile ? { 
                                   backgroundImage: `url(${service.image || 'https://placehold.co/400x300?text=Serviço'})`, 
                                   backgroundSize: 'cover', 
@@ -684,7 +692,6 @@ const Booking: React.FC = () => {
                   {selectedService && (<div className="mb-8 p-4 bg-gray-800/90 rounded-lg text-center border border-gray-700"><p className="text-gray-300"><span className={goldColor}>{t('booking.serviceSelected')}:</span> <strong className="ml-2">{selectedService.title || selectedService.id}</strong></p></div>)}
                   <div className="grid md:grid-cols-2 gap-6">
                     {availableVehicles.length > 0 ? ( availableVehicles.map((vehicle) => ( 
-                        // ✅ OTIMIZAÇÃO: Passa loadingStrategy="lazy" para o VehicleCard no mobile
                         <VehicleCard 
                             key={vehicle.id} 
                             vehicle={vehicle} 
@@ -692,6 +699,7 @@ const Booking: React.FC = () => {
                             showPrice={true} 
                             darkMode={true} 
                             isSelected={selectedVehicle?.id === vehicle.id}
+                            // OTIMIZAÇÃO: Passa loadingStrategy="lazy" para o VehicleCard no mobile
                             loadingStrategy={isMobile ? "lazy" : "eager"} 
                         /> 
                     )) ) : ( 
@@ -705,7 +713,7 @@ const Booking: React.FC = () => {
                 </div>
               )}
               
-              {/* PASSO 4: Data e Hora */}
+              {/* PASSO 4: Data e Hora (Início da seção cortada) */}
               {currentStep === 4 && selectedVehicle && tripDetails && selectedService && ( 
                 <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                     <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
@@ -716,6 +724,13 @@ const Booking: React.FC = () => {
                           <p className="text-xl font-bold text-amber-400">{selectedVehicle.name}</p>
                       </div>
 
+                      {slotValidationError && (
+                            <div className="p-4 mb-4 bg-red-800/50 text-red-300 border border-red-700 rounded-lg flex items-center">
+                                <XCircle className="w-5 h-5 mr-3" />
+                                {slotValidationError}
+                            </div>
+                      )}
+
                       <BookingForm 
                           onSubmit={handleDateTimeSubmit}
                           initialData={tripDetails}
@@ -725,183 +740,196 @@ const Booking: React.FC = () => {
                           showAddresses={false}
                           showTripType={true}
                           isHourlyService={selectedService.id === "6" || selectedService.title.includes('Hora')}
-                          reservedSlots={reservedSlots} 
+                          reservedSlots={reservedSlots}
                           selectedVehicleId={selectedVehicle.id}
                       />
-                      
-                      {slotValidationError && (
-                          <div className="mt-4 p-4 bg-red-800/70 border border-red-500 rounded-lg text-sm flex items-center">
-                              <XCircle className="w-5 h-5 mr-3 text-red-300" />
-                              <p className="text-red-100">{slotValidationError}</p>
-                          </div>
-                      )}
-                      
-                    </div>
+                    </div> 
                 </ElectricBorder>
               )}
-
-              {/* PASSO 5: Detalhes do Cliente e Pagamento */}
-              {currentStep === 5 && selectedVehicle && tripDetails && selectedService && (
+              
+              {/* PASSO 5: Detalhes de Pagamento */}
+              {currentStep === 5 && selectedVehicle && tripDetails && selectedService && ( 
                 <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                     <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
-                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails')}</h2>
-                        
-                        {/* Se a reserva já foi feita, mostra o pagamento (Multibanco/MB Way) */}
-                        {reservationResponse && (reservationResponse.payment.method === 'mb' || reservationResponse.payment.method === 'mbw') ? (
-                            <div className="text-center p-8 bg-gray-800 rounded-xl">
-                                <h3 className="text-2xl font-bold text-green-400 mb-4">{t('payment.successReservation') || 'Reserva Criada, Pagamento Pendente!'}</h3>
-                                <p className="text-lg text-gray-300 mb-6">{t('payment.completePaymentInstruction') || 'Use os dados abaixo para concluir o pagamento.'}</p>
-                                
-                                <div className="inline-block text-left p-6 bg-gray-900 rounded-lg border border-green-700">
-                                    <p className="text-gray-400 mb-2">Método:</p>
-                                    <img 
-                                        src={PaymentImageMap[reservationResponse.payment.method] || 'https://placehold.co/100x40?text=Payment'} 
-                                        alt={reservationResponse.payment.method} 
-                                        className="mb-4 rounded" 
-                                        loading="lazy"
-                                        onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=Ref+Pagamento'; }}
-                                    />
-                                    {reservationResponse.payment.data.entity && (
-                                        <p className="text-white text-xl font-mono mb-2">
-                                            <span className="text-gray-500 font-sans mr-2">Entidade:</span> {reservationResponse.payment.data.entity}
-                                        </p>
-                                    )}
-                                    {reservationResponse.payment.data.reference && (
-                                        <p className="text-white text-xl font-mono mb-2">
-                                            <span className="text-gray-500 font-sans mr-2">Referência:</span> {reservationResponse.payment.data.reference}
-                                        </p>
-                                    )}
-                                    {reservationResponse.payment.data.value && (
-                                        <p className="text-white text-xl font-mono">
-                                            <span className="text-gray-500 font-sans mr-2">Valor:</span> <span className="text-amber-400">{reservationResponse.payment.data.value} €</span>
-                                        </p>
-                                    )}
-                                    {reservationResponse.payment.data.message && (
-                                        <p className="mt-4 text-sm text-gray-500">{reservationResponse.payment.data.message}</p>
-                                    )}
-                                    
-                                </div>
-                                <p className="mt-6 text-sm text-gray-500">{t('payment.confirmInfo') || 'A sua reserva será confirmada após a receção do pagamento.'}</p>
+                      <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails') || 'Detalhes do Pagamento'}</h2>
+                      
+                      {/* Resumo da Reserva */}
+                      <div className="mb-8 p-6 bg-gray-800/70 rounded-lg border border-gray-700">
+                          <h3 className="text-xl font-bold mb-3 flex items-center"><CornerDownRight className={`w-5 h-5 mr-2 ${goldColor}`} /> {t('booking.tripSummary') || 'Resumo da Viagem'}</h3>
+                          <p className="text-gray-300 mb-1">
+                              <MapPin className="w-4 h-4 inline mr-2 text-gray-500" />
+                              <strong className={goldColor}>{t('booking.from')}:</strong> {tripDetails.pickupAddress}
+                          </p>
+                          <p className="text-gray-300 mb-4">
+                              <MapPin className="w-4 h-4 inline mr-2 text-gray-500" />
+                              <strong className={goldColor}>{t('booking.to')}:</strong> {tripDetails.dropoffAddress}
+                          </p>
+                          <p className="text-gray-300 mb-1 flex items-center">
+                              <Calendar className="w-4 h-4 inline mr-2 text-gray-500" />
+                              <strong className={goldColor}>{t('booking.date')}:</strong> {tripDetails.date} às {tripDetails.time}
+                          </p>
+                          <p className="text-gray-300 mb-1 flex items-center">
+                              <Car className="w-4 h-4 inline mr-2 text-gray-500" />
+                              <strong className={goldColor}>{t('booking.vehicle')}:</strong> {selectedVehicle.name} ({selectedService.title})
+                          </p>
+                          <div className="text-3xl font-extrabold text-right mt-6 pt-4 border-t border-gray-700">
+                              {t('booking.total')}: <span className={goldColor}>€{calculatedPrice.toFixed(2)}</span>
+                          </div>
+                      </div>
 
-                                <button onClick={() => setCurrentStep(6)} className="mt-8 bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-500 transition-colors flex items-center mx-auto">
-                                    <Check className="w-5 h-5 mr-2" /> {t('payment.goToConfirmation') || 'Ir para Confirmação'}
-                                </button>
-                            </div>
-                        ) : (
-                            // Formulário de Cliente e Pagamento
-                            <form onSubmit={handlePaymentSubmit} className="space-y-6">
-                                
-                                {/* Resumo da Viagem (Com Preço Calculado) */}
-                                <div className="p-4 bg-gray-800/70 rounded-lg border border-gray-700">
-                                    <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.tripSummary') || 'Resumo da Viagem'}</h3>
-                                    <p className="text-sm text-gray-300">
-                                        <CornerDownRight className="w-4 h-4 inline mr-2 text-gray-500"/>
-                                        {t('booking.pickup')}: {tripDetails.pickupAddress} &rarr; {t('booking.dropoff')}: {tripDetails.dropoffAddress}
-                                    </p>
-                                    <p className="text-sm text-gray-300">
-                                        <Calendar className="w-4 h-4 inline mr-2 text-gray-500"/>
-                                        {tripDetails.date} às {tripDetails.time} ({selectedService.title})
-                                    </p>
-                                    <p className="text-sm text-gray-300">
-                                        <Car className="w-4 h-4 inline mr-2 text-gray-500"/>
-                                        {t('booking.vehicle')}: {selectedVehicle.name}
-                                    </p>
-                                    <p className="text-xl font-extrabold text-white mt-3">
-                                        {t('booking.totalPrice') || 'Preço Total'}: <span className="text-amber-400">{calculatedPrice.toFixed(2)} €</span> 
-                                    </p>
-                                </div>
+                      {paymentError && (
+                          <div className="p-4 mb-4 bg-red-800/50 text-red-300 border border-red-700 rounded-lg flex items-center">
+                              <XCircle className="w-5 h-5 mr-3" />
+                              {paymentError}
+                          </div>
+                      )}
 
+                      {/* Formulário de Cliente e Pagamento */}
+                      <form onSubmit={handlePaymentSubmit}>
+                          <h3 className="text-xl font-bold text-white mb-4">{t('booking.contactDetails') || 'Dados do Contacto'}</h3>
+                          <div className="space-y-4 mb-8">
+                              <input 
+                                  type="text" 
+                                  name="passenger_name" 
+                                  placeholder={t('form.fullName') || "Nome Completo"} 
+                                  value={clientForm.passenger_name} 
+                                  onChange={handleClientFormChange} 
+                                  className={inputClasses}
+                                  required
+                              />
+                              <input 
+                                  type="email" 
+                                  name="passenger_email" 
+                                  placeholder={t('form.email') || "Email"} 
+                                  value={clientForm.passenger_email} 
+                                  onChange={handleClientFormChange} 
+                                  className={inputClasses}
+                                  required
+                              />
+                              <input 
+                                  type="tel" 
+                                  name="passenger_phone" 
+                                  placeholder={t('form.phone') || "Telefone (ex: 912345678)"} 
+                                  value={clientForm.passenger_phone} 
+                                  onChange={handleClientFormChange} 
+                                  className={inputClasses}
+                                  required
+                              />
+                              <textarea
+                                  name="special_requests"
+                                  placeholder={t('form.specialRequests') || "Pedidos Especiais (Ex: cadeira de criança, paragem extra...)"}
+                                  value={clientForm.special_requests}
+                                  onChange={handleClientFormChange}
+                                  className={`${inputClasses} h-24`}
+                              />
+                          </div>
+                          
+                          <h3 className="text-xl font-bold text-white mb-4">{t('booking.paymentMethod') || 'Método de Pagamento'}</h3>
+                          <div className="flex flex-col space-y-3 mb-8">
+                              {/* MB Way */}
+                              <label className="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-700/50">
+                                  <input 
+                                      type="radio" 
+                                      name="paymentMethod" 
+                                      value="mbw" 
+                                      checked={clientForm.paymentMethod === 'mbw'} 
+                                      onChange={handleClientFormChange}
+                                      className="form-radio h-5 w-5 text-amber-400 border-gray-600 bg-gray-800 focus:ring-amber-400"
+                                  />
+                                  <span className="ml-3 font-medium text-white">MB Way</span>
+                                  <img src={PaymentImageMap.mbw} alt="MB Way" className="ml-auto" />
+                              </label>
+                              {/* Multibanco */}
+                              <label className="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-700/50">
+                                  <input 
+                                      type="radio" 
+                                      name="paymentMethod" 
+                                      value="mb" 
+                                      checked={clientForm.paymentMethod === 'mb'} 
+                                      onChange={handleClientFormChange}
+                                      className="form-radio h-5 w-5 text-amber-400 border-gray-600 bg-gray-800 focus:ring-amber-400"
+                                  />
+                                  <span className="ml-3 font-medium text-white">Multibanco (Entidade/Referência)</span>
+                                  <img src={PaymentImageMap.mb} alt="Multibanco" className="ml-auto" />
+                              </label>
+                              {/* Cartão de Crédito */}
+                              <label className="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-700/50">
+                                  <input 
+                                      type="radio" 
+                                      name="paymentMethod" 
+                                      value="cc" 
+                                      checked={clientForm.paymentMethod === 'cc'} 
+                                      onChange={handleClientFormChange}
+                                      className="form-radio h-5 w-5 text-amber-400 border-gray-600 bg-gray-800 focus:ring-amber-400"
+                                  />
+                                  <span className="ml-3 font-medium text-white">{t('booking.creditCard') || 'Cartão de Crédito'}</span>
+                                  <img src={PaymentImageMap.cc} alt="Cartão" className="ml-auto" />
+                              </label>
+                          </div>
 
-                                {/* Detalhes do Passageiro */}
-                                <fieldset className="p-4 border border-gray-700 rounded-lg">
-                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.passengerDetails') || 'Detalhes do Passageiro'}</legend>
-                                    <div className="space-y-4 pt-2">
-                                        <input type="text" name="passenger_name" value={clientForm.passenger_name} onChange={handleClientFormChange} placeholder={t('booking.passengerName') || "Nome Completo"} required className={inputClasses}/>
-                                        <input type="email" name="passenger_email" value={clientForm.passenger_email} onChange={handleClientFormChange} placeholder={t('booking.passengerEmail') || "Email"} required className={inputClasses}/>
-                                        <input type="tel" name="passenger_phone" value={clientForm.passenger_phone} onChange={handleClientFormChange} placeholder={t('booking.passengerPhone') || "Telefone (ex: 91xxxxxxx)"} required className={inputClasses}/>
-                                        <textarea name="special_requests" value={clientForm.special_requests} onChange={handleClientFormChange} placeholder={t('booking.specialRequests') || "Pedidos Especiais (Ex: cadeira de bebé, paragem extra)"} rows={3} className={inputClasses}></textarea>
-                                    </div>
-                                </fieldset>
-
-                                {/* Método de Pagamento */}
-                                <fieldset className="p-4 border border-gray-700 rounded-lg">
-                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.paymentMethod') || 'Método de Pagamento'}</legend>
-                                    <div className="flex flex-wrap gap-4 pt-2">
-                                        {['mbw', 'mb', 'cc'].map(method => (
-                                            <label key={method} className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
-                                                clientForm.paymentMethod === method ? 'bg-amber-400 text-black shadow-lg ring-2 ring-amber-400' : 'bg-gray-800 hover:bg-gray-700 text-white'
-                                            }`}>
-                                                <input
-                                                    type="radio"
-                                                    name="paymentMethod"
-                                                    value={method}
-                                                    checked={clientForm.paymentMethod === method}
-                                                    onChange={handleClientFormChange}
-                                                    className="hidden"
-                                                />
-                                                <img 
-                                                    src={PaymentImageMap[method] || 'https://placehold.co/100x40?text=Payment'} 
-                                                    alt={method} 
-                                                    className="h-6 object-contain mr-2" 
-                                                    loading="lazy" 
-                                                    onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=' + method; }}
-                                                />
-                                                <span className="font-semibold">{method.toUpperCase()}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </fieldset>
-
-                                {paymentError && (
-                                    <div className="p-4 bg-red-800/70 border border-red-500 rounded-lg text-sm flex items-center">
-                                        <XCircle className="w-5 h-5 mr-3 text-red-300" />
-                                        <p className="text-red-100 font-medium">{paymentError}</p>
-                                    </div>
-                                )}
-
-                                <button type="submit" disabled={isSubmittingPayment} className={buttonClasses}>
-                                    {isSubmittingPayment ? (
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    ) : (
-                                        <Check className="w-5 h-5 mr-2" />
-                                    )}
-                                    {isSubmittingPayment ? t('booking.submitting') || 'A Processar...' : `${t('booking.completeBooking') || 'Confirmar e Pagar'} (${calculatedPrice.toFixed(2)} €)`}
-                                </button>
-                            </form>
-                        )}
-                    </div>
+                          <button 
+                              type="submit" 
+                              className={buttonClasses} 
+                              disabled={isSubmittingPayment}
+                          >
+                              {isSubmittingPayment ? (
+                                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                              ) : (
+                                  <ArrowRight className="w-6 h-6 mr-2" />
+                              )}
+                              {t('booking.completeBooking') || `Pagar €${calculatedPrice.toFixed(2)} e Concluir Reserva`}
+                          </button>
+                      </form>
+                    </div> 
                 </ElectricBorder>
               )}
-
-
-              {/* PASSO 6: Confirmação Final */}
-              {currentStep === 6 && (
-                  <ElectricBorder color="#10B981" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-                      <div className={`${cardBg} rounded-xl shadow-2xl p-8 text-center`}>
-                          <Check className="w-12 h-12 text-green-400 mx-auto mb-4"/>
-                          <h2 className="text-4xl font-extrabold text-green-400 mb-4">{t('booking.allDone') || 'Tudo Pronto!'}</h2>
-                          <p className="text-xl text-gray-300 mb-6">{t('booking.confirmationMessage') || 'A sua reserva foi efetuada com sucesso e está confirmada. Receberá um email com os detalhes.'}</p>
+              
+              {/* PASSO 6: Confirmação */}
+              {currentStep === 6 && reservationResponse && (
+                  <div className={`${cardBg} rounded-xl shadow-2xl p-8 text-center`}>
+                      <Check className="w-16 h-16 text-green-500 mx-auto mb-6" />
+                      <h2 className="text-4xl font-extrabold text-white mb-4">{t('booking.successTitle') || 'Reserva Confirmada!'}</h2>
+                      <p className="text-xl text-gray-300 mb-8">{t('booking.successMessage') || 'A sua reserva foi efetuada com sucesso. Em breve receberá um email com os detalhes.'}</p>
+                      
+                      <div className="p-6 bg-gray-800 rounded-lg border border-gray-700 text-left mb-8">
+                          <h3 className="text-xl font-bold mb-3 border-b border-gray-700 pb-2 text-amber-400">{t('booking.paymentInfo') || 'Informação de Pagamento'}</h3>
+                          <p className="text-gray-300 mb-2">
+                              <strong className="text-white">{t('booking.method') || 'Método'}:</strong> {reservationResponse.payment.method === 'mbw' ? 'MB Way' : reservationResponse.payment.method === 'mb' ? 'Multibanco' : 'Cartão de Crédito'}
+                          </p>
                           
-                          {reservationResponse && (
-                              <div className="mt-8 p-6 bg-gray-900 rounded-lg inline-block text-left border border-gray-700">
-                                  <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.reservationDetails') || 'Detalhes da Reserva'}</h3>
-                                  <p className="text-white">ID da Reserva: <span className="font-mono text-amber-300">{reservationResponse.reservation.id}</span></p>
-                                  <p className="text-white">Veículo: <span className="font-medium">{selectedVehicle?.name}</span></p>
-                                  <p className="text-white">Hora: <span className="font-medium">{tripDetails?.time}</span></p>
-                              </div>
+                          {reservationResponse.payment.method === 'mbw' && (
+                              <>
+                                  <p className="text-gray-300 mb-2"><strong className="text-white">Telemóvel para MB WAY:</strong> {reservationResponse.payment.data.phone}</p>
+                                  <p className="text-lg font-bold text-red-400 mt-4">{reservationResponse.payment.data.message || 'Por favor, confirme o pagamento na aplicação MB Way.'}</p>
+                              </>
                           )}
-
-                          <button onClick={() => navigate('/')} className="mt-8 bg-amber-400 text-gray-900 px-6 py-3 rounded-full font-bold hover:bg-amber-300 transition-colors">
-                              {t('booking.backToHome') || 'Voltar à Página Inicial'}
-                          </button>
+                          
+                          {reservationResponse.payment.method === 'mb' && (
+                              <>
+                                  <p className="text-gray-300 mb-2"><strong className="text-white">Entidade:</strong> {reservationResponse.payment.data.entity}</p>
+                                  <p className="text-gray-300 mb-2"><strong className="text-white">Referência:</strong> {reservationResponse.payment.data.reference}</p>
+                                  <p className="text-gray-300"><strong className="text-white">Valor:</strong> €{reservationResponse.payment.data.value}</p>
+                                  <p className="text-lg font-bold text-red-400 mt-4">{t('booking.payMultibanco') || 'Por favor, efetue o pagamento antes da data limite.'}</p>
+                              </>
+                          )}
+                          
+                          {reservationResponse.payment.method === 'cc' && (
+                              <p className="text-green-400 font-bold mt-2">{t('booking.paymentProcessed') || 'Pagamento com Cartão Processado com Sucesso.'}</p>
+                          )}
                       </div>
-                  </ElectricBorder>
+                      
+                      <button 
+                          onClick={() => navigate('/')} 
+                          className="mt-6 bg-amber-400 text-gray-900 px-8 py-3 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors"
+                      >
+                          {t('booking.goToHome') || 'Voltar à Página Inicial'}
+                      </button>
+                  </div>
               )}
+              
             </div>
-            
           </div>
         </div>
-        
     </div>
   );
 };
