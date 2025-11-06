@@ -45,7 +45,7 @@ const MadeiraGallery: React.FC<{ t: (key: string) => string }> = ({ t }) => {
           {/* Imagem 3 */}
           <div className="col-span-4 md:col-span-6 lg:col-span-3 overflow-hidden rounded-xl shadow-lg">
             <img
-              src="/src/assets/madeira_imagem_3.jpeg"
+              src="/assets/madeira_imagem_3.jpeg"
               alt="Levada Walk, Madeira"
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 min-h-[200px]"
             />
@@ -53,7 +53,7 @@ const MadeiraGallery: React.FC<{ t: (key: string) => string }> = ({ t }) => {
           {/* Imagem 4 */}
           <div className="col-span-4 md:col-span-6 lg:col-span-3 overflow-hidden rounded-xl shadow-lg">
             <img
-              src="/src/assets/madeira_imagem_4.jpeg"
+              src="/assets/madeira_imagem_4.jpeg"
               alt="Paisagem da Madeira"
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 min-h-[200px]"
             />
@@ -61,7 +61,7 @@ const MadeiraGallery: React.FC<{ t: (key: string) => string }> = ({ t }) => {
           {/* Imagem 5 (Ajuste no layout para manter a simetria com 6 imagens) */}
           <div className="col-span-4 md:col-span-6 lg:col-span-6 overflow-hidden rounded-xl shadow-lg">
             <img
-              src="/src/assets/madeira_imagem_5.jpg"
+              src="/assets/madeira_imagem_5.jpg"
               alt="Montanhas da Madeira"
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 min-h-[200px]"
             />
@@ -69,7 +69,7 @@ const MadeiraGallery: React.FC<{ t: (key: string) => string }> = ({ t }) => {
           {/* Imagem 6 */}
           <div className="col-span-4 md:col-span-6 lg:col-span-6 overflow-hidden rounded-xl shadow-lg">
             <img
-              src="/src/assets/madeira_imagem_6.jpeg"
+              src="/assets/madeira_imagem_6.jpeg"
               alt="Jardins do Funchal"
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 min-h-[200px]"
             />
