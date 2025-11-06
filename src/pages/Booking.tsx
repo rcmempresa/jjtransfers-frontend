@@ -3,16 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 // Ícones
 import { 
     Check, Briefcase, Lock, Plane, Calendar, Clock, Heart, MapPin, 
-    Moon, Music, Car, Loader2, ArrowRight, CornerDownRight
+    Moon, Music, Car, Loader2, ArrowRight, CornerDownRight, XCircle
 } from 'lucide-react'; 
 // Componentes (assumidos como existentes)
-// NOTE: Assumindo que estes componentes existem no seu projeto
 import BookingForm from '../components/BookingForm'; 
 import VehicleCard from '../components/VehicleCard';
 import { useLanguage } from '../hooks/useLanguage';
 import ElectricBorder from '../components/ElectricBorder'; 
-// Assumindo que a sua função de API para o db.query está acessível no backend
-// NOTE: Este é um ficheiro frontend, a lógica db.query está no reservationsController.js
 
 // ----------------------------------------------------------------------
 // TIPAGEM DINÂMICA
@@ -28,7 +25,7 @@ type ServiceType = {
 type Vehicle = { 
     id: string; 
     name: string; 
-    price: number; 
+    price: number; // base_price_per_hour
     capacity: number; 
     luggage_capacity: number; 
     type: string; 
@@ -44,7 +41,7 @@ type TripDetails = {
     tripType: 'one-way' | 'round-trip'; 
     returnDate?: string; 
     returnTime?: string; 
-    durationHours?: number; // NOVO: Duração para serviços à hora
+    durationHours?: number; // Duração para serviços à hora
 };
 
 type BookingStep = { 
@@ -79,7 +76,6 @@ export type ReservedSlot = {
 };
 // ----------------------------------------------------------------------
 
-
 // MAPA DE ÍCONES PARA RENDERIZAÇÃO DINÂMICA
 const IconMap: { [key: string]: React.ElementType } = {
     Briefcase: Briefcase, Plane: Plane, Calendar: Calendar, Clock: Clock, 
@@ -97,21 +93,40 @@ const PaymentImageMap: { [key: string]: string } = {
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
 
 // ======================================================================
-// NOVO HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (Para não carregar o vídeo)
+// MELHORIA DE PERFORMANCE: HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (matchMedia)
 // ======================================================================
-const useIsMobile = (breakpoint = 768) => { 
-    const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
-
+const useIsMobile = (breakpoint = 768) => {
+    const mediaQuery = `(max-width: ${breakpoint - 1}px)`;
+    
+    // Estado inicial otimizado
+    const [isMobile, setIsMobile] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.matchMedia(mediaQuery).matches;
+        }
+        return false; // Default no SSR/ambiente sem window
+    }); 
+    
     useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < breakpoint);
+        const mql = window.matchMedia(mediaQuery);
+        
+        const handleMediaQueryChange = (e: MediaQueryListEvent) => {
+            if (e.matches !== isMobile) {
+               setIsMobile(e.matches);
+            }
         };
 
-        window.addEventListener('resize', handleResize);
-        handleResize(); // Executa na montagem para garantir o estado inicial
+        // Adiciona o listener
+        mql.addListener(handleMediaQueryChange);
+        // Atualiza o estado na montagem se o valor inicial estava errado
+        setIsMobile(mql.matches);
 
-        return () => window.removeEventListener('resize', handleResize);
-    }, [breakpoint]);
+
+        return () => {
+            // Remove o listener
+            mql.removeListener(handleMediaQueryChange);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [breakpoint, mediaQuery]); 
 
     return isMobile;
 };
@@ -164,6 +179,8 @@ const Booking: React.FC = () => {
   const [slotValidationError, setSlotValidationError] = useState<string | null>(null); 
   
   // ESTADO PARA CONTROLO DO POP-UP DE AVISO DE VEÍCULO PRÉ-SELECIONADO
+  // Não utilizado no fluxo final de 6 passos, mas mantido.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showVehicleWarning, setShowVehicleWarning] = useState(false); 
   
   // Ajuste: A data/hora agora têm um valor inicial *default*
@@ -175,7 +192,7 @@ const Booking: React.FC = () => {
           date: new Date().toISOString().split('T')[0], 
           time: "10:00", 
           tripType: 'one-way', 
-          durationHours: 1, // NOVO: Duração default de 1h
+          durationHours: 1, // Duração default de 1h
       } as TripDetails : null)
   );
 
@@ -432,7 +449,6 @@ const Booking: React.FC = () => {
     setPaymentError(null);
 
     // 🛑 GESTÃO DO TOKEN DE AUTENTICAÇÃO
-    // Lê o token do localStorage (se existir)
     const token = localStorage.getItem('jwtToken');
     
     const headers: HeadersInit = { 
@@ -440,7 +456,6 @@ const Booking: React.FC = () => {
     };
     
     if (token) {
-        // ANEXA o token ao cabeçalho Authorization para que o backend o descodifique
         headers['Authorization'] = `Bearer ${token}`;
         console.log("Token JWT anexado para reserva autenticada.");
     }
@@ -466,7 +481,8 @@ const Booking: React.FC = () => {
         
         pickup_address: tripDetails.pickupAddress,
         dropoff_address: tripDetails.dropoffAddress,
-        final_price: selectedVehicle.price.toFixed(2), // Preço base (validado pelo backend)
+        // Envia o preço base. O preço final, calculado ou fixo, é validado pelo BACKEND.
+        final_price: selectedVehicle.price.toFixed(2), 
         
         // Dados do Cliente (sempre necessários, mesmo para autenticados)
         passenger_name: clientForm.passenger_name,
@@ -556,6 +572,26 @@ const Booking: React.FC = () => {
     return vehiclesList.filter(v => v.serviceTypes && v.serviceTypes.includes(selectedService.id)); 
   }, [selectedService, vehiclesList]);
 
+  // ----------------------------------------------------------------------
+  // CÁLCULO DO PREÇO EXIBIDO NO FRONTEND (MELHORIA)
+  // ----------------------------------------------------------------------
+  const calculatedPrice = useMemo(() => {
+    if (!selectedVehicle || !selectedService || !tripDetails) return 0;
+    
+    // Assumindo que o ID "6" ou "Hora" indicam preço por hora
+    const isHourly = selectedService.id === "6" || selectedService.title.includes('Hora'); 
+
+    if (isHourly && tripDetails.durationHours && tripDetails.durationHours > 0) {
+        // Preço por hora * duração
+        return selectedVehicle.price * tripDetails.durationHours; 
+    }
+    
+    // Para transfers fixos (one-way ou round-trip)
+    // Usamos o preço base, assumindo que representa o preço fixo
+    return selectedVehicle.price; 
+    
+  }, [selectedVehicle, selectedService, tripDetails]);
+
 
   // ----------------------------------------------------------------------
   // RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO/ERRO
@@ -601,12 +637,12 @@ const Booking: React.FC = () => {
             </div>
         )}
         
-        {/* 2. OVERLAY ESCURO (Ainda necessário no móvel, mas sem vídeo) */}
-        {/* Se for móvel, aplicamos um fundo escuro simples para não ficar branco */}
+        {/* 2. OVERLAY ESCURO (Fundo escuro simples para o móvel) */}
         {isMobile && <div className="fixed inset-0 bg-black/90 z-[-1]"></div>}
 
 
         {/* 3. CONTEÚDO PRINCIPAL */}
+        {/* Garante que o fundo preto no mobile se mantém por baixo do conteúdo */}
         <div className="relative pt-40 pb-12 text-white min-h-screen">
           <div className="container mx-auto px-4">
             
@@ -713,7 +749,13 @@ const Booking: React.FC = () => {
                   <h2 className="text-3xl font-bold text-white mb-6 text-center drop-shadow-lg">3. {t('booking.selectVehicle')}</h2>
                   {selectedService && (<div className="mb-8 p-4 bg-gray-800/90 rounded-lg text-center border border-gray-700"><p className="text-gray-300"><span className={goldColor}>{t('booking.serviceSelected')}:</span> <strong className="ml-2">{selectedService.title || selectedService.id}</strong></p></div>)}
                   <div className="grid md:grid-cols-2 gap-6">
-                    {availableVehicles.length > 0 ? ( availableVehicles.map((vehicle) => ( <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={handleVehicleSelect} showPrice={true} darkMode={true} isSelected={selectedVehicle?.id === vehicle.id} /> )) ) : ( <div className={`${cardBg} md:col-span-2 rounded-xl shadow-2xl p-8 text-center`}><p className="text-lg text-gray-300 mb-6">{t('booking.noVehicleAvailable', { serviceName: selectedService?.title || t('booking.notSelected') })}</p><p className="text-sm text-gray-500 mb-6">{t('booking.noVehicleTip') || 'Nenhum veículo disponível nas datas indicadas. Por favor, volte atrás e tente outro serviço.'}</p><button onClick={() => setCurrentStep(2)} className="inline-flex items-center bg-gray-700 text-amber-400 px-6 py-3 rounded-full font-bold hover:bg-gray-600 transition-colors"><ArrowRight className="w-5 h-5 mr-2 transform rotate-180" />{t('booking.tryAnotherService') || 'Tentar Outro Serviço'}</button></div> )}
+                    {availableVehicles.length > 0 ? ( availableVehicles.map((vehicle) => ( <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={handleVehicleSelect} showPrice={true} darkMode={true} isSelected={selectedVehicle?.id === vehicle.id} /> )) ) : ( 
+                        <div className={`${cardBg} md:col-span-2 rounded-xl shadow-2xl p-8 text-center`}>
+                            <p className="text-xl text-gray-400">
+                                {t('booking.noVehicleForService') || 'Não há veículos disponíveis para este serviço.'}
+                            </p>
+                        </div> 
+                    )}
                   </div>
                 </div>
               )}
@@ -764,8 +806,8 @@ const Booking: React.FC = () => {
                         {/* Se a reserva já foi feita, mostra o pagamento (Multibanco/MB Way) */}
                         {reservationResponse && (reservationResponse.payment.method === 'mb' || reservationResponse.payment.method === 'mbw') ? (
                             <div className="text-center p-8 bg-gray-800 rounded-xl">
-                                <h3 className="text-2xl font-bold text-green-400 mb-4">{t('payment.successReservation')}</h3>
-                                <p className="text-lg text-gray-300 mb-6">{t('payment.completePaymentInstruction')}</p>
+                                <h3 className="text-2xl font-bold text-green-400 mb-4">{t('payment.successReservation') || 'Reserva Criada, Pagamento Pendente!'}</h3>
+                                <p className="text-lg text-gray-300 mb-6">{t('payment.completePaymentInstruction') || 'Use os dados abaixo para concluir o pagamento.'}</p>
                                 
                                 <div className="inline-block text-left p-6 bg-gray-900 rounded-lg border border-green-700">
                                     <p className="text-gray-400 mb-2">Método:</p>
@@ -773,7 +815,8 @@ const Booking: React.FC = () => {
                                         src={PaymentImageMap[reservationResponse.payment.method] || 'https://placehold.co/100x40?text=Payment'} 
                                         alt={reservationResponse.payment.method} 
                                         className="mb-4 rounded" 
-                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100x40?text=Ref+Pagamento'; }}
+                                        loading="lazy"
+                                        onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=Ref+Pagamento'; }}
                                     />
                                     {reservationResponse.payment.data.entity && (
                                         <p className="text-white text-xl font-mono mb-2">
@@ -795,10 +838,10 @@ const Booking: React.FC = () => {
                                     )}
                                     
                                 </div>
-                                <p className="mt-6 text-sm text-gray-500">{t('payment.confirmInfo')}</p>
+                                <p className="mt-6 text-sm text-gray-500">{t('payment.confirmInfo') || 'A sua reserva será confirmada após a receção do pagamento.'}</p>
 
                                 <button onClick={() => setCurrentStep(6)} className="mt-8 bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-500 transition-colors flex items-center mx-auto">
-                                    <Check className="w-5 h-5 mr-2" /> {t('payment.goToConfirmation')}
+                                    <Check className="w-5 h-5 mr-2" /> {t('payment.goToConfirmation') || 'Ir para Confirmação'}
                                 </button>
                             </div>
                         ) : (
@@ -807,29 +850,28 @@ const Booking: React.FC = () => {
                                 
                                 {/* Resumo da Viagem */}
                                 <div className="p-4 bg-gray-800/70 rounded-lg border border-gray-700">
-                                    <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.tripSummary')}</h3>
+                                    <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.tripSummary') || 'Resumo da Viagem'}</h3>
                                     <p className="text-sm text-gray-300">
                                         <CornerDownRight className="w-4 h-4 inline mr-2 text-gray-500"/>
                                         {t('booking.pickup')}: {tripDetails.pickupAddress} &rarr; {t('booking.dropoff')}: {tripDetails.dropoffAddress}
                                     </p>
                                     <p className="text-sm text-gray-300">
                                         <Calendar className="w-4 h-4 inline mr-2 text-gray-500"/>
-                                        {tripDetails.date} às {tripDetails.time}
+                                        {tripDetails.date} às {tripDetails.time} ({selectedService.title})
                                     </p>
                                     <p className="text-sm text-gray-300">
                                         <Car className="w-4 h-4 inline mr-2 text-gray-500"/>
-                                        {selectedVehicle.name} ({selectedService.title})
+                                        {t('booking.vehicle')}: {selectedVehicle.name}
                                     </p>
                                     <p className="text-xl font-extrabold text-white mt-3">
-                                        {t('booking.totalPrice')}: <span className="text-amber-400">{selectedVehicle.price.toFixed(2)} €</span> 
-                                        {/* NOTE: Preço fixo por veículo. O cálculo do preço final deve ser feito no backend. */}
+                                        {t('booking.totalPrice') || 'Preço Total'}: <span className="text-amber-400">{calculatedPrice.toFixed(2)} €</span> 
                                     </p>
                                 </div>
 
 
                                 {/* Detalhes do Passageiro */}
                                 <fieldset className="p-4 border border-gray-700 rounded-lg">
-                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.passengerDetails')}</legend>
+                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.passengerDetails') || 'Detalhes do Passageiro'}</legend>
                                     <div className="space-y-4 pt-2">
                                         <input type="text" name="passenger_name" value={clientForm.passenger_name} onChange={handleClientFormChange} placeholder={t('booking.passengerName') || "Nome Completo"} required className={inputClasses}/>
                                         <input type="email" name="passenger_email" value={clientForm.passenger_email} onChange={handleClientFormChange} placeholder={t('booking.passengerEmail') || "Email"} required className={inputClasses}/>
@@ -840,7 +882,7 @@ const Booking: React.FC = () => {
 
                                 {/* Método de Pagamento */}
                                 <fieldset className="p-4 border border-gray-700 rounded-lg">
-                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.paymentMethod')}</legend>
+                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.paymentMethod') || 'Método de Pagamento'}</legend>
                                     <div className="flex flex-wrap gap-4 pt-2">
                                         {['mbw', 'mb', 'cc'].map(method => (
                                             <label key={method} className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
@@ -858,7 +900,8 @@ const Booking: React.FC = () => {
                                                     src={PaymentImageMap[method] || 'https://placehold.co/100x40?text=Payment'} 
                                                     alt={method} 
                                                     className="h-6 object-contain mr-2" 
-                                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100x40?text=' + method; }}
+                                                    loading="lazy" // MELHORIA: Carregamento Lazy para mobile
+                                                    onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=' + method; }}
                                                 />
                                                 <span className="font-semibold">{method.toUpperCase()}</span>
                                             </label>
@@ -879,7 +922,7 @@ const Booking: React.FC = () => {
                                     ) : (
                                         <Check className="w-5 h-5 mr-2" />
                                     )}
-                                    {isSubmittingPayment ? t('booking.submitting') : t('booking.completeBooking')}
+                                    {isSubmittingPayment ? t('booking.submitting') || 'A Processar...' : `${t('booking.completeBooking') || 'Confirmar e Pagar'} (${calculatedPrice.toFixed(2)} €)`}
                                 </button>
                             </form>
                         )}
@@ -888,18 +931,18 @@ const Booking: React.FC = () => {
               )}
 
 
-              {/* PASSO 6: Confirmação Final (Quando CC, PayPal ou À Chegada é usado) */}
+              {/* PASSO 6: Confirmação Final */}
               {currentStep === 6 && (
-                  <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
+                  <ElectricBorder color="#10B981" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                       <div className={`${cardBg} rounded-xl shadow-2xl p-8 text-center`}>
                           <Check className="w-12 h-12 text-green-400 mx-auto mb-4"/>
                           <h2 className="text-4xl font-extrabold text-green-400 mb-4">{t('booking.allDone') || 'Tudo Pronto!'}</h2>
-                          <p className="text-xl text-gray-300 mb-6">{t('booking.confirmationMessage') || 'A sua reserva foi efetuada com sucesso e está confirmada.'}</p>
+                          <p className="text-xl text-gray-300 mb-6">{t('booking.confirmationMessage') || 'A sua reserva foi efetuada com sucesso e está confirmada. Receberá um email com os detalhes.'}</p>
                           
                           {/* Resumo da Reserva (Apenas se houver resposta) */}
                           {reservationResponse && (
                               <div className="mt-8 p-6 bg-gray-900 rounded-lg inline-block text-left border border-gray-700">
-                                  <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.reservationDetails')}</h3>
+                                  <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.reservationDetails') || 'Detalhes da Reserva'}</h3>
                                   <p className="text-white">ID da Reserva: <span className="font-mono text-amber-300">{reservationResponse.reservation.id}</span></p>
                                   <p className="text-white">Veículo: <span className="font-medium">{selectedVehicle?.name}</span></p>
                                   <p className="text-white">Hora: <span className="font-medium">{tripDetails?.time}</span></p>
