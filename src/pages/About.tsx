@@ -29,7 +29,7 @@ const MadeiraGallery: React.FC<{ t: (key: string) => string }> = ({ t }) => {
           {/* Imagem 1 (Principal - 2x largura, 2x altura) */}
           <div className="col-span-4 md:col-span-6 row-span-2 overflow-hidden rounded-xl shadow-2xl transition-shadow duration-300">
             <img
-              src="public/assets/madeira_imagem_1.jpg" 
+              src="/assets/madeira_imagem_1.jpg" 
               alt="Vista panorâmica do Funchal, Madeira"
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 min-h-[300px]"
             />
@@ -37,7 +37,7 @@ const MadeiraGallery: React.FC<{ t: (key: string) => string }> = ({ t }) => {
           {/* Imagem 2 */}
           <div className="col-span-4 md:col-span-6 overflow-hidden rounded-xl shadow-lg">
             <img
-              src="public/assets/madeira_imagem_2.jpg"
+              src="/assets/madeira_imagem_2.jpg"
               alt="Ponta de São Lourenço, Madeira"
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 min-h-[200px]"
             />
