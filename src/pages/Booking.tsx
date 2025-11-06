@@ -93,16 +93,36 @@ const PaymentImageMap: { [key: string]: string } = {
     'cc': 'https://placehold.co/100x40?text=Cartão',
 };
 
-// URL DA API (Usar variável de ambiente em produção)
-// const API_BASE_URL = 'http://localhost:3000/api'; // Removido, usando import.meta.env.VITE_BACKEND_URL
-
 // URL DO VÍDEO DE BACKGROUND
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
+
+// ======================================================================
+// NOVO HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (Para não carregar o vídeo)
+// ======================================================================
+const useIsMobile = (breakpoint = 768) => { 
+    const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < breakpoint);
+        };
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Executa na montagem para garantir o estado inicial
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, [breakpoint]);
+
+    return isMobile;
+};
+
+// ======================================================================
 
 const Booking: React.FC = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile(); // CHAMA O HOOK AQUI!
   
   const initialTripDetails = location.state?.tripDetails; 
   
@@ -563,20 +583,27 @@ const Booking: React.FC = () => {
     // CONTÊINER PRINCIPAL
     <div className="relative min-h-screen">
         
-        {/* 1. CAMADA DE VÍDEO DE BACKGROUND */}
-        <div className="fixed inset-0 overflow-hidden z-[-1]">
-            <iframe
-                title="Background Video"
-                src={VIDEO_EMBED_URL}
-                allow="autoplay; encrypted-media"
-                allowFullScreen={false}
-                frameBorder="0"
-                className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto translate-x-[-50%] translate-y-[-50%] pointer-events-none"
-                style={{ aspectRatio: '16/9', objectFit: 'cover' }}
-            />
-            {/* 2. OVERLAY ESCURO */}
-            <div className="absolute inset-0 bg-black/70"></div>
-        </div>
+        {/* 1. CAMADA DE VÍDEO DE BACKGROUND (RENDERIZAÇÃO CONDICIONAL) */}
+        {/* O vídeo só carrega se NÃO for um dispositivo móvel (largura > 768px) */}
+        {!isMobile && (
+            <div className="fixed inset-0 overflow-hidden z-[-1]">
+                <iframe
+                    title="Background Video"
+                    src={VIDEO_EMBED_URL}
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen={false}
+                    frameBorder="0"
+                    className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto translate-x-[-50%] translate-y-[-50%] pointer-events-none"
+                    style={{ aspectRatio: '16/9', objectFit: 'cover' }}
+                />
+                {/* 2. OVERLAY ESCURO */}
+                <div className="absolute inset-0 bg-black/70"></div>
+            </div>
+        )}
+        
+        {/* 2. OVERLAY ESCURO (Ainda necessário no móvel, mas sem vídeo) */}
+        {/* Se for móvel, aplicamos um fundo escuro simples para não ficar branco */}
+        {isMobile && <div className="fixed inset-0 bg-black/90 z-[-1]"></div>}
 
 
         {/* 3. CONTEÚDO PRINCIPAL */}
@@ -695,250 +722,201 @@ const Booking: React.FC = () => {
               {currentStep === 4 && selectedVehicle && tripDetails && selectedService && ( 
                 <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                     <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
-                      <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">4. {t('booking.tripDateTime') || 'Escolha a Data e Hora'}</h2>
-                      
-                      {/* Resumo Rápido */}
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 text-sm text-gray-300 p-3 border-b border-gray-700/50">
-                          <p className="mb-2 sm:mb-0"><span className={goldColor}>{t('vehicle') || 'Veículo'}:</span> <strong className="ml-1">{selectedVehicle.name}</strong></p>
-                          <p><span className={goldColor}>{t('service') || 'Serviço'}:</span> <strong className="ml-1">{selectedService.title}</strong></p>
+                      <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">4. {t('booking.tripDateTime') || 'Data e Hora'}</h2>
+
+                      <div className="mb-6 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                          <p className="text-sm text-gray-400">{t('booking.vehicleSelected')}:</p>
+                          <p className="text-xl font-bold text-amber-400">{selectedVehicle.name}</p>
                       </div>
 
-                      {/* Aviso de Duração (Se for Serviço por Hora) */}
-                      {(selectedService.id === "6" || selectedService.title.includes('Hora')) && (
-                          <div className="bg-blue-900/50 text-blue-300 p-4 rounded-lg mb-6 flex items-center">
-                              <Clock className="w-5 h-5 mr-3" />
-                              <p className="text-sm">
-                                  {t('booking.hourlyServiceNote') || "Este é um serviço à hora. Por favor, especifique a **duração em horas** no formulário abaixo."}
-                              </p>
-                          </div>
-                      )}
-                      
-                      {/* Exibir Erro de Validação de Slot, se existir */}
-                      {slotValidationError && (
-                          <div className="bg-red-900/50 text-red-300 p-4 rounded-lg mb-6 flex items-center">
-                              <Lock className="w-5 h-5 mr-3" />
-                              <p className="text-sm font-semibold">{slotValidationError}</p>
-                          </div>
-                      )}
-
-                      {/* Formulário de Data/Hora (Novo Passo 4) */}
+                      {/* O BookingForm aqui apenas recolhe Data, Hora, Tipo e Duração */}
                       <BookingForm 
-                          onSubmit={handleDateTimeSubmit} 
-                          initialData={tripDetails} 
-                          compact={false} 
+                          onSubmit={handleDateTimeSubmit}
+                          initialData={tripDetails}
+                          compact={false}
                           showDateAndTime={true} 
+                          showServiceAndVehicle={false}
+                          showAddresses={false}
                           showTripType={true}
-                          showAddress={false} // Não mostra endereços novamente
-                          showServiceAndVehicle={false} 
+                          isHourlyService={selectedService.id === "6" || selectedService.title.includes('Hora')}
                           reservedSlots={reservedSlots} 
                           selectedVehicleId={selectedVehicle.id}
                       />
                       
+                      {/* Mensagem de Erro de Slot */}
+                      {slotValidationError && (
+                          <div className="mt-4 p-4 bg-red-800/70 border border-red-500 rounded-lg text-sm flex items-center">
+                              <XCircle className="w-5 h-5 mr-3 text-red-300" />
+                              <p className="text-red-100">{slotValidationError}</p>
+                          </div>
+                      )}
+                      
                     </div>
                 </ElectricBorder>
               )}
-              
+
               {/* PASSO 5: Detalhes do Cliente e Pagamento */}
               {currentStep === 5 && selectedVehicle && tripDetails && selectedService && (
                 <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                     <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
-                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails') || 'Detalhes e Pagamento'}</h2>
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails')}</h2>
                         
-                        {/* ---------------------------------------------------- */}
-                        {/* SECÇÃO DE PAGAMENTO (SE REFERÊNCIAS EXISTIREM) */}
-                        {/* ---------------------------------------------------- */}
-                        {reservationResponse && (
-                            <div className="text-center p-6 bg-green-900/40 border border-green-700 rounded-lg">
-                                <Check className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                                <h3 className="text-2xl font-bold text-green-300 mb-2">{t('booking.reservationCreated') || 'Reserva Criada com Sucesso!'}</h3>
-                                <p className="text-lg text-gray-200 mb-6">{reservationResponse.message}</p>
+                        {/* Se a reserva já foi feita, mostra o pagamento (Multibanco/MB Way) */}
+                        {reservationResponse && (reservationResponse.payment.method === 'mb' || reservationResponse.payment.method === 'mbw') ? (
+                            <div className="text-center p-8 bg-gray-800 rounded-xl">
+                                <h3 className="text-2xl font-bold text-green-400 mb-4">{t('payment.successReservation')}</h3>
+                                <p className="text-lg text-gray-300 mb-6">{t('payment.completePaymentInstruction')}</p>
                                 
-                                <div className="p-4 bg-black/50 rounded-lg inline-block">
+                                <div className="inline-block text-left p-6 bg-gray-900 rounded-lg border border-green-700">
+                                    <p className="text-gray-400 mb-2">Método:</p>
                                     <img 
-                                        src={PaymentImageMap[reservationResponse.payment.method] || 'https://placehold.co/100x40?text=Pagamento'} 
+                                        src={PaymentImageMap[reservationResponse.payment.method] || 'https://placehold.co/100x40?text=Payment'} 
                                         alt={reservationResponse.payment.method} 
-                                        className="h-10 mx-auto mb-4"
+                                        className="mb-4 rounded" 
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100x40?text=Ref+Pagamento'; }}
                                     />
-                                    
-                                    <p className="text-white text-xl font-bold mb-4">{t('payment.toPay') || 'Valor a Pagar'}: {reservationResponse.payment.data.value || selectedVehicle.price.toFixed(2)} EUR</p>
-                                    
-                                    {/* Exibir referências de Multibanco */}
-                                    {reservationResponse.payment.method === 'mb' && reservationResponse.payment.data.entity && reservationResponse.payment.data.reference && (
-                                        <div className="text-left space-y-2 text-lg">
-                                            <p><span className={goldColor}>Entidade:</span> <strong className="text-white">{reservationResponse.payment.data.entity}</strong></p>
-                                            <p><span className={goldColor}>Referência:</span> <strong className="text-white">{reservationResponse.payment.data.reference}</strong></p>
-                                        </div>
+                                    {reservationResponse.payment.data.entity && (
+                                        <p className="text-white text-xl font-mono mb-2">
+                                            <span className="text-gray-500 font-sans mr-2">Entidade:</span> {reservationResponse.payment.data.entity}
+                                        </p>
+                                    )}
+                                    {reservationResponse.payment.data.reference && (
+                                        <p className="text-white text-xl font-mono mb-2">
+                                            <span className="text-gray-500 font-sans mr-2">Referência:</span> {reservationResponse.payment.data.reference}
+                                        </p>
+                                    )}
+                                    {reservationResponse.payment.data.value && (
+                                        <p className="text-white text-xl font-mono">
+                                            <span className="text-gray-500 font-sans mr-2">Valor:</span> <span className="text-amber-400">{reservationResponse.payment.data.value} €</span>
+                                        </p>
+                                    )}
+                                    {reservationResponse.payment.data.message && (
+                                        <p className="mt-4 text-sm text-gray-500">{reservationResponse.payment.data.message}</p>
                                     )}
                                     
-                                    {/* Exibir referências de MB Way */}
-                                    {reservationResponse.payment.method === 'mbw' && reservationResponse.payment.data.phone && (
-                                        <div className="text-left space-y-2 text-lg">
-                                            <p><span className={goldColor}>Nº Telefone MB Way:</span> <strong className="text-white">{reservationResponse.payment.data.phone}</strong></p>
-                                            <p className="text-sm text-gray-400 mt-2">{t('payment.mbwInstructions') || 'Deverá confirmar o pagamento na App MB Way.'}</p>
-                                        </div>
-                                    )}
                                 </div>
-                                
-                                <button 
-                                    onClick={() => setCurrentStep(6)} 
-                                    className={`${buttonClasses} mt-8`}
-                                >
-                                    {t('booking.finish')} <CornerDownRight className="w-5 h-5 ml-2" />
+                                <p className="mt-6 text-sm text-gray-500">{t('payment.confirmInfo')}</p>
+
+                                <button onClick={() => setCurrentStep(6)} className="mt-8 bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-500 transition-colors flex items-center mx-auto">
+                                    <Check className="w-5 h-5 mr-2" /> {t('payment.goToConfirmation')}
                                 </button>
                             </div>
-                        )}
-                        
-                        {/* ---------------------------------------------------- */}
-                        {/* FORMULÁRIO DE CLIENTE E MÉTODO DE PAGAMENTO (SE RESERVA AINDA NÃO SUBMETIDA) */}
-                        {/* ---------------------------------------------------- */}
-                        {!reservationResponse && (
-                            <form onSubmit={handlePaymentSubmit}>
+                        ) : (
+                            // Formulário de Cliente e Pagamento
+                            <form onSubmit={handlePaymentSubmit} className="space-y-6">
                                 
-                                {/* Resumo da Reserva */}
-                                <div className="mb-6 p-4 bg-gray-800/90 rounded-lg border border-gray-700">
-                                    <p className="text-lg font-bold text-white mb-2">{t('summary.title') || 'Resumo da Viagem'}</p>
+                                {/* Resumo da Viagem */}
+                                <div className="p-4 bg-gray-800/70 rounded-lg border border-gray-700">
+                                    <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.tripSummary')}</h3>
                                     <p className="text-sm text-gray-300">
-                                        <MapPin className="w-4 h-4 inline mr-2 text-amber-400" />
-                                        {tripDetails.pickupAddress} &rarr; {tripDetails.dropoffAddress}
+                                        <CornerDownRight className="w-4 h-4 inline mr-2 text-gray-500"/>
+                                        {t('booking.pickup')}: {tripDetails.pickupAddress} &rarr; {t('booking.dropoff')}: {tripDetails.dropoffAddress}
                                     </p>
-                                    <p className="text-sm text-gray-300 mt-1">
-                                        <Calendar className="w-4 h-4 inline mr-2 text-amber-400" />
-                                        {tripDetails.date} às {tripDetails.time} 
-                                        {tripDetails.tripType === 'round-trip' && ` (Ida e Volta)`}
-                                        {tripDetails.durationHours && (selectedService.id === "6" || selectedService.title.includes('Hora')) && ` (${tripDetails.durationHours}h)`}
+                                    <p className="text-sm text-gray-300">
+                                        <Calendar className="w-4 h-4 inline mr-2 text-gray-500"/>
+                                        {tripDetails.date} às {tripDetails.time}
                                     </p>
-                                    <p className="text-base font-semibold text-amber-400 mt-3">{t('summary.price') || 'Preço Base'}: {selectedVehicle.price.toFixed(2)} EUR</p>
+                                    <p className="text-sm text-gray-300">
+                                        <Car className="w-4 h-4 inline mr-2 text-gray-500"/>
+                                        {selectedVehicle.name} ({selectedService.title})
+                                    </p>
+                                    <p className="text-xl font-extrabold text-white mt-3">
+                                        {t('booking.totalPrice')}: <span className="text-amber-400">{selectedVehicle.price.toFixed(2)} €</span> 
+                                        {/* NOTE: Preço fixo por veículo. O cálculo do preço final deve ser feito no backend. */}
+                                    </p>
                                 </div>
 
-                                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.name') || 'Nome Completo'}</label>
-                                        <input 
-                                            type="text" 
-                                            name="passenger_name"
-                                            value={clientForm.passenger_name}
-                                            onChange={handleClientFormChange}
-                                            className={inputClasses}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.email') || 'Email'}</label>
-                                        <input 
-                                            type="email" 
-                                            name="passenger_email"
-                                            value={clientForm.passenger_email}
-                                            onChange={handleClientFormChange}
-                                            className={inputClasses}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.phone') || 'Telefone'}</label>
-                                        <input 
-                                            type="tel" 
-                                            name="passenger_phone"
-                                            value={clientForm.passenger_phone}
-                                            onChange={handleClientFormChange}
-                                            className={inputClasses}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.paymentMethod') || 'Método de Pagamento'}</label>
-                                        <select 
-                                            name="paymentMethod"
-                                            value={clientForm.paymentMethod}
-                                            onChange={handleClientFormChange}
-                                            className={inputClasses}
-                                            required
-                                        >
-                                            <option value="mbw">MB Way</option>
-                                            <option value="mb">Multibanco</option>
-                                            <option value="cc">Cartão de Crédito</option>
-                                            {/* Adicionar outros métodos conforme necessário (Ex: Pagamento ao Motorista) */}
-                                        </select>
-                                    </div>
-                                </div>
 
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">{t('form.requests') || 'Pedidos Especiais (Opcional)'}</label>
-                                    <textarea 
-                                        name="special_requests"
-                                        value={clientForm.special_requests}
-                                        onChange={handleClientFormChange}
-                                        rows={3}
-                                        className={inputClasses}
-                                    ></textarea>
-                                </div>
+                                {/* Detalhes do Passageiro */}
+                                <fieldset className="p-4 border border-gray-700 rounded-lg">
+                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.passengerDetails')}</legend>
+                                    <div className="space-y-4 pt-2">
+                                        <input type="text" name="passenger_name" value={clientForm.passenger_name} onChange={handleClientFormChange} placeholder={t('booking.passengerName') || "Nome Completo"} required className={inputClasses}/>
+                                        <input type="email" name="passenger_email" value={clientForm.passenger_email} onChange={handleClientFormChange} placeholder={t('booking.passengerEmail') || "Email"} required className={inputClasses}/>
+                                        <input type="tel" name="passenger_phone" value={clientForm.passenger_phone} onChange={handleClientFormChange} placeholder={t('booking.passengerPhone') || "Telefone (ex: 91xxxxxxx)"} required className={inputClasses}/>
+                                        <textarea name="special_requests" value={clientForm.special_requests} onChange={handleClientFormChange} placeholder={t('booking.specialRequests') || "Pedidos Especiais (Ex: cadeira de bebé, paragem extra)"} rows={3} className={inputClasses}></textarea>
+                                    </div>
+                                </fieldset>
 
-                                {/* Exibir Erro de Pagamento */}
+                                {/* Método de Pagamento */}
+                                <fieldset className="p-4 border border-gray-700 rounded-lg">
+                                    <legend className="px-2 text-lg font-bold text-white">{t('booking.paymentMethod')}</legend>
+                                    <div className="flex flex-wrap gap-4 pt-2">
+                                        {['mbw', 'mb', 'cc'].map(method => (
+                                            <label key={method} className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
+                                                clientForm.paymentMethod === method ? 'bg-amber-400 text-black shadow-lg ring-2 ring-amber-400' : 'bg-gray-800 hover:bg-gray-700 text-white'
+                                            }`}>
+                                                <input
+                                                    type="radio"
+                                                    name="paymentMethod"
+                                                    value={method}
+                                                    checked={clientForm.paymentMethod === method}
+                                                    onChange={handleClientFormChange}
+                                                    className="hidden"
+                                                />
+                                                <img 
+                                                    src={PaymentImageMap[method] || 'https://placehold.co/100x40?text=Payment'} 
+                                                    alt={method} 
+                                                    className="h-6 object-contain mr-2" 
+                                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100x40?text=' + method; }}
+                                                />
+                                                <span className="font-semibold">{method.toUpperCase()}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </fieldset>
+
                                 {paymentError && (
-                                    <div className="bg-red-900/50 text-red-300 p-4 rounded-lg mb-6 flex items-center">
-                                        <Lock className="w-5 h-5 mr-3" />
-                                        <p className="text-sm font-semibold">{paymentError}</p>
+                                    <div className="p-4 bg-red-800/70 border border-red-500 rounded-lg text-sm flex items-center">
+                                        <XCircle className="w-5 h-5 mr-3 text-red-300" />
+                                        <p className="text-red-100 font-medium">{paymentError}</p>
                                     </div>
                                 )}
 
-                                <button 
-                                    type="submit" 
-                                    className={buttonClasses} 
-                                    disabled={isSubmittingPayment}
-                                >
+                                <button type="submit" disabled={isSubmittingPayment} className={buttonClasses}>
                                     {isSubmittingPayment ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                                            {t('booking.submitting') || 'A Processar Reserva...'}
-                                        </>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                                     ) : (
-                                        <>
-                                            {t('booking.confirmAndPay') || 'Confirmar Reserva e Pagar'}
-                                            <ArrowRight className="w-5 h-5 ml-2" />
-                                        </>
+                                        <Check className="w-5 h-5 mr-2" />
                                     )}
+                                    {isSubmittingPayment ? t('booking.submitting') : t('booking.completeBooking')}
                                 </button>
                             </form>
                         )}
-                        
                     </div>
                 </ElectricBorder>
               )}
-              
-              {/* PASSO 6: Confirmação Final */}
+
+
+              {/* PASSO 6: Confirmação Final (Quando CC, PayPal ou À Chegada é usado) */}
               {currentStep === 6 && (
-                <div className="p-10 bg-black/80 border border-gray-800 rounded-xl shadow-2xl text-center">
-                    <Check className="w-16 h-16 text-green-500 mx-auto mb-6" />
-                    <h2 className="text-4xl font-extrabold text-white mb-4">{t('booking.finalConfirmation') || 'Reserva Finalizada!'}</h2>
-                    <p className="text-xl text-gray-300 mb-8">
-                        {t('booking.checkEmail') || 'Receberá todos os detalhes da sua viagem e confirmação de pagamento no seu email em breve.'}
-                    </p>
-                    
-                    {reservationResponse?.reservation?.id && (
-                        <p className="text-lg text-amber-400 font-bold mb-8">
-                            {t('booking.reservationId') || 'ID da Sua Reserva'}: #{reservationResponse.reservation.id}
-                        </p>
-                    )}
+                  <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
+                      <div className={`${cardBg} rounded-xl shadow-2xl p-8 text-center`}>
+                          <Check className="w-12 h-12 text-green-400 mx-auto mb-4"/>
+                          <h2 className="text-4xl font-extrabold text-green-400 mb-4">{t('booking.allDone') || 'Tudo Pronto!'}</h2>
+                          <p className="text-xl text-gray-300 mb-6">{t('booking.confirmationMessage') || 'A sua reserva foi efetuada com sucesso e está confirmada.'}</p>
+                          
+                          {/* Resumo da Reserva (Apenas se houver resposta) */}
+                          {reservationResponse && (
+                              <div className="mt-8 p-6 bg-gray-900 rounded-lg inline-block text-left border border-gray-700">
+                                  <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.reservationDetails')}</h3>
+                                  <p className="text-white">ID da Reserva: <span className="font-mono text-amber-300">{reservationResponse.reservation.id}</span></p>
+                                  <p className="text-white">Veículo: <span className="font-medium">{selectedVehicle?.name}</span></p>
+                                  <p className="text-white">Hora: <span className="font-medium">{tripDetails?.time}</span></p>
+                              </div>
+                          )}
 
-                    <button 
-                        onClick={() => navigate('/')} 
-                        className="inline-flex items-center bg-amber-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors"
-                    >
-                        {t('booking.returnHome') || 'Voltar à Página Inicial'}
-                    </button>
-                </div>
+                          <button onClick={() => navigate('/')} className="mt-8 bg-amber-400 text-gray-900 px-6 py-3 rounded-full font-bold hover:bg-amber-300 transition-colors">
+                              {t('booking.backToHome') || 'Voltar à Página Inicial'}
+                          </button>
+                      </div>
+                  </ElectricBorder>
               )}
-              
-              {/* Fallback de Erro de Passo */}
-              {currentStep > 6 && (
-                <div className="p-8 bg-red-900/40 border border-red-700 rounded-xl text-center">
-                    <p className="text-xl text-red-300">{t('booking.stepError') || 'Erro no fluxo de passos. Por favor, comece novamente.'}</p>
-                    <button onClick={() => setCurrentStep(1)} className="mt-4 text-amber-400 hover:underline">Iniciar Reserva</button>
-                </div>
-              )}
-
             </div>
+            
           </div>
         </div>
+        
     </div>
   );
 };
