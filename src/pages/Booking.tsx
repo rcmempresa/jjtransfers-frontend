@@ -12,7 +12,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import ElectricBorder from '../components/ElectricBorder'; 
 
 // ----------------------------------------------------------------------
-// TIPAGEM DINÂMICA
+// TIPAGEM DINÂMICA (Mantida)
 // ----------------------------------------------------------------------
 type ServiceType = { 
     id: string; 
@@ -76,53 +76,49 @@ export type ReservedSlot = {
 };
 // ----------------------------------------------------------------------
 
-// MAPA DE ÍCONES PARA RENDERIZAÇÃO DINÂMICA
+// MAPA DE ÍCONES PARA RENDERIZAÇÃO DINÂMICA (Mantido)
 const IconMap: { [key: string]: React.ElementType } = {
     Briefcase: Briefcase, Plane: Plane, Calendar: Calendar, Clock: Clock, 
     Heart: Heart, MapPin: MapPin, Moon: Moon, Music: Music, Car: Car, 
 };
 
-// URLs de Imagens para Métodos de Pagamento (Use os seus assets reais!)
+// URLs de Imagens para Métodos de Pagamento (Mantido)
 const PaymentImageMap: { [key: string]: string } = {
     'mbw': 'https://placehold.co/100x40?text=MB+Way',
     'mb': 'https://placehold.co/100x40?text=Multibanco',
     'cc': 'https://placehold.co/100x40?text=Cartão',
 };
 
-// URL DO VÍDEO DE BACKGROUND
+// URL DO VÍDEO DE BACKGROUND (Mantido)
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
 
 // ======================================================================
-// MELHORIA DE PERFORMANCE: HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (matchMedia)
+// ✅ OTIMIZAÇÃO DE PERFORMANCE: HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (matchMedia)
 // ======================================================================
 const useIsMobile = (breakpoint = 768) => {
     const mediaQuery = `(max-width: ${breakpoint - 1}px)`;
     
-    // Estado inicial otimizado
+    // Estado inicial otimizado: tenta obter o valor correto na montagem
     const [isMobile, setIsMobile] = useState(() => {
         if (typeof window !== 'undefined') {
             return window.matchMedia(mediaQuery).matches;
         }
-        return false; // Default no SSR/ambiente sem window
+        return false; 
     }); 
     
     useEffect(() => {
         const mql = window.matchMedia(mediaQuery);
         
         const handleMediaQueryChange = (e: MediaQueryListEvent) => {
-            if (e.matches !== isMobile) {
-               setIsMobile(e.matches);
-            }
+            setIsMobile(e.matches);
         };
 
         // Adiciona o listener
         mql.addListener(handleMediaQueryChange);
-        // Atualiza o estado na montagem se o valor inicial estava errado
+        // Garante o estado inicial (importante para evitar falsos positivos)
         setIsMobile(mql.matches);
 
-
         return () => {
-            // Remove o listener
             mql.removeListener(handleMediaQueryChange);
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -137,7 +133,7 @@ const Booking: React.FC = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile(); // CHAMA O HOOK AQUI!
+  const isMobile = useIsMobile(); 
   
   const initialTripDetails = location.state?.tripDetails; 
   
@@ -175,24 +171,18 @@ const Booking: React.FC = () => {
       paymentMethod: 'mbw', // Default para MB Way
   });
   
-  // ESTADO PARA CONTROLO DE ERRO DE VALIDAÇÃO DE SLOT
   const [slotValidationError, setSlotValidationError] = useState<string | null>(null); 
-  
-  // ESTADO PARA CONTROLO DO POP-UP DE AVISO DE VEÍCULO PRÉ-SELECIONADO
-  // Não utilizado no fluxo final de 6 passos, mas mantido.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showVehicleWarning, setShowVehicleWarning] = useState(false); 
   
-  // Ajuste: A data/hora agora têm um valor inicial *default*
   const [tripDetails, setTripDetails] = useState<TripDetails | null>(
       initialTripDetails || (initialPickup && initialDropoff ? {
           pickupAddress: decodeURIComponent(initialPickup),
           dropoffAddress: decodeURIComponent(initialDropoff),
-          // Valores iniciais default
           date: new Date().toISOString().split('T')[0], 
           time: "10:00", 
           tripType: 'one-way', 
-          durationHours: 1, // Duração default de 1h
+          durationHours: 1, 
       } as TripDetails : null)
   );
 
@@ -200,10 +190,9 @@ const Booking: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   
   // ----------------------------------------------------------------------
-  // LÓGICA DE BUSCA DA API (Dados Iniciais e Slots Reservados)
+  // LÓGICA DE BUSCA DA API (Mantida)
   // ----------------------------------------------------------------------
  useEffect(() => {
-    // ... (Lógica de fetchBookingData - mantida)
     const fetchBookingData = async () => {
         setIsLoading(true);
         setApiError(null);
@@ -263,7 +252,6 @@ const Booking: React.FC = () => {
                         const newVehicle: Vehicle = {
                             id: vehicleId,
                             name: v.name,
-                            // O preço base é base_price_per_hour (usado para cálculo de preço fixo e hora)
                             price: Number(v.base_price_per_hour) || 0, 
                             capacity: v.capacity || 4, 
                             luggage_capacity: v.luggage_capacity || 2, 
@@ -295,7 +283,6 @@ const Booking: React.FC = () => {
                 );
                 
                 setReservedSlots(validSlots);
-                console.log("✅ Slots reservados carregados:", validSlots.length);
             }
 
         } catch (err) {
@@ -318,7 +305,7 @@ const Booking: React.FC = () => {
   const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors flex items-center justify-center";
 
 
-  // ESTRUTURA DE 6 PASSOS
+  // ESTRUTURA DE 6 PASSOS (Mantida)
   const steps: BookingStep[] = [
     { step: 1, title: t('booking.tripAddresses') || '1. Localização', completed: currentStep > 1 },
     { step: 2, title: t('booking.selectService') || '2. Serviço', completed: currentStep > 2 },
@@ -328,19 +315,15 @@ const Booking: React.FC = () => {
     { step: 6, title: t('booking.confirmation') || '6. Confirmação', completed: false },
   ];
 
-  // ----------------------------------------------------------------------
-  // FUNÇÃO DE VALIDAÇÃO DE DISPONIBILIDADE
-  // ----------------------------------------------------------------------
+  // FUNÇÃO DE VALIDAÇÃO DE DISPONIBILIDADE (Mantida)
   const validateCurrentSlotAvailability = useCallback((): boolean => {
     if (!selectedVehicle || !tripDetails || !tripDetails.date || !tripDetails.time) {
         setSlotValidationError(null); 
         return true; 
     }
     
-    // Constrói o ISO string do slot atual para comparação precisa
     const selectedDateTime = `${tripDetails.date}T${tripDetails.time}:00.000Z`;
     
-    // Verifica se o slot está na lista de slots reservados (USANDO o ID DO VEÍCULO)
     const isCurrentlyReserved = reservedSlots.some(slot => 
         slot.vehicle_id === selectedVehicle.id && 
         slot.iso_date === selectedDateTime
@@ -354,34 +337,26 @@ const Booking: React.FC = () => {
         return false;
     }
     
-    setSlotValidationError(null); // Limpa qualquer erro anterior
+    setSlotValidationError(null); 
     return true;
   }, [selectedVehicle, tripDetails, reservedSlots, t]);
 
-  // --- HANDLERS ---
-
-  // HANDLER DO NOVO PASSO 1 (Apenas endereços)
+  // HANDLERS (Mantidos)
   const handleAddressSubmit = (details: TripDetails) => {
-    // Mantém apenas os campos de endereço e tipo de viagem
     setTripDetails(prev => ({
         pickupAddress: details.pickupAddress,
         dropoffAddress: details.dropoffAddress,
-        // Mantém data/hora como default
         date: prev?.date || new Date().toISOString().split('T')[0], 
         time: prev?.time || "10:00", 
         tripType: prev?.tripType || 'one-way', 
         returnDate: prev?.returnDate,
         returnTime: prev?.returnTime,
-        durationHours: prev?.durationHours || 1, // Mantém ou define 1h
+        durationHours: prev?.durationHours || 1, 
     }));
-    
-    // Avança para a seleção de serviço
     setCurrentStep(2); 
   };
   
-  // HANDLER DO NOVO PASSO 4 (Data/Hora e Tipo de Viagem)
   const handleDateTimeSubmit = (details: TripDetails) => {
-    // Atualiza todos os detalhes, incluindo data, hora, tripType e durationHours
     setTripDetails(details);
     
     if (!selectedVehicle) {
@@ -390,7 +365,6 @@ const Booking: React.FC = () => {
         return;
     }
     
-    // Validação final de disponibilidade
     const selectedDateTime = `${details.date}T${details.time}:00.000Z`;
     const isCurrentlyReserved = reservedSlots.some(slot => 
         slot.vehicle_id === selectedVehicle!.id && 
@@ -402,25 +376,21 @@ const Booking: React.FC = () => {
             t('booking.slotUnavailableError') || 
             `O veículo ${selectedVehicle.name} ficou indisponível para ${details.date} às ${details.time}. Por favor, escolha outra data ou hora.`
         );
-        return; // Impede o avanço se o slot estiver reservado
+        return; 
     }
-    setSlotValidationError(null); // Limpa erro se a validação passar
+    setSlotValidationError(null); 
     
-    // Se a data/hora for válida, avança para os detalhes do cliente/pagamento (Novo Passo 5)
     setCurrentStep(5); 
   };
   
   const handleServiceSelection = (service: ServiceType) => {
       setSelectedService(service);
-      setCurrentStep(3); // Avança para a seleção do veículo
+      setCurrentStep(3); 
   };
 
   const handleVehicleSelect = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
-    
-    // Avança para o NOVO PASSO 4 (Seleção de Data/Hora)
     setCurrentStep(4); 
-    
     setShowVehicleWarning(false);
   };
 
@@ -429,84 +399,58 @@ const Booking: React.FC = () => {
       setClientForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // HANDLER CRÍTICO: SUBMISSÃO PARA O BACKEND (NOVO PASSO 5)
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validação completa dos dados necessários
+    
     if (!selectedVehicle || !tripDetails || !selectedService || !tripDetails.date || !tripDetails.time || !clientForm.passenger_email || !clientForm.passenger_name || !clientForm.passenger_phone) {
         setPaymentError(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
         return;
     }
     
-    // REVALIDAÇÃO FINAL ANTES DE SUBMETER À API
     if (!validateCurrentSlotAvailability()) {
         setPaymentError(t('booking.slotUnavailableError') || "O horário escolhido ficou indisponível no último momento. Por favor, corrija o Passo 4 antes de submeter.");
         setCurrentStep(4); 
-        return; // Bloqueia o envio do POST
+        return; 
     }
 
     setIsSubmittingPayment(true);
     setPaymentError(null);
 
-    // 🛑 GESTÃO DO TOKEN DE AUTENTICAÇÃO
     const token = localStorage.getItem('jwtToken');
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) { headers['Authorization'] = `Bearer ${token}`; }
     
-    const headers: HeadersInit = { 
-        'Content-Type': 'application/json' 
-    };
-    
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        console.log("Token JWT anexado para reserva autenticada.");
-    }
-    // FIM DA GESTÃO DO TOKEN
-    
-    // CÁLCULO DA DURAÇÃO DA VIAGEM EM MINUTOS
-    // Assumindo que o ID "6" ou o título "Hora" significam serviço por hora
     const isHourlyService = selectedService.id === "6" || selectedService.title.includes('Hora'); 
-
     const calculatedDurationMinutes = 
         isHourlyService && tripDetails.durationHours 
         ? tripDetails.durationHours * 60 
-        : 60; // Default 60 minutos para transfers fixos (o backend usará isto como base)
+        : 60; 
 
-    // Constrói o payload para o backend
     const payload = {
         fleet_id: selectedVehicle.id,
         service_id: selectedService.id,
-        
-        // Data/Hora de levantamento em formato ISO
         trip_pickup_time: `${tripDetails.date}T${tripDetails.time}:00.000Z`,
         trip_duration_minutes: calculatedDurationMinutes,
-        
         pickup_address: tripDetails.pickupAddress,
         dropoff_address: tripDetails.dropoffAddress,
-        // Envia o preço base. O preço final, calculado ou fixo, é validado pelo BACKEND.
-        final_price: selectedVehicle.price.toFixed(2), 
-        
-        // Dados do Cliente (sempre necessários, mesmo para autenticados)
+        final_price: calculatedPrice.toFixed(2), // Preço calculado no frontend (o backend valida)
         passenger_name: clientForm.passenger_name,
         passenger_email: clientForm.passenger_email,
         passenger_phone: clientForm.passenger_phone,
         special_requests: clientForm.special_requests || null,
-
-        // Dados de Pagamento (para EasyPay)
         paymentMethod: clientForm.paymentMethod,
         clientData: {
             name: clientForm.passenger_name,
             email: clientForm.passenger_email,
             phone: clientForm.passenger_phone,
-            phone_indicative: '351', // Assumindo Portugal
+            phone_indicative: '351', 
             key: `client-${clientForm.passenger_email}`,
         }
     };
     
-    console.log("PAYLOAD DE RESERVA ENVIADO:", payload);
-    
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/reservations/create`, {
             method: 'POST',
-            // 🛑 USAR HEADERS COM O TOKEN
             headers: headers,
             body: JSON.stringify(payload),
         });
@@ -514,14 +458,12 @@ const Booking: React.FC = () => {
         const responseData = await response.json();
 
         if (!response.ok) {
-            // TRATAMENTO DO ERRO 409 CONFLICT (Slot Ocupado)
             if (response.status === 409) {
                  const errorMessage = responseData.message || t('booking.slotUnavailableError') || 'O slot de reserva ficou indisponível. Por favor, volte ao Passo 4 e tente outra hora.';
                  setPaymentError(errorMessage);
                  setCurrentStep(4); 
                  throw new Error(errorMessage);
             }
-            // Outros erros
             throw new Error(responseData.message || 'Falha na criação da reserva.');
         }
 
@@ -529,19 +471,12 @@ const Booking: React.FC = () => {
         
         if (data.success) {
             setReservationResponse(data);
-            
-            // CORREÇÃO DO FLUXO PÓS-PAGAMENTO
             const paymentMethod = data.payment.method;
 
             if (paymentMethod === 'cc' && data.payment.data.redirect_url) {
-                // 1. Cartão de Crédito: Redirecionamento imediato
                 window.location.href = data.payment.data.redirect_url;
                 return; 
-            } else if (paymentMethod === 'mb' || paymentMethod === 'mbw') {
-                // 2. MB Way / Multibanco: Fica no Passo 5 para mostrar as referências
-                // O estado de 'currentStep' já está em 5
             } else {
-                // 3. Outros (Ex: Pagamento à Chegada, ou CC bem sucedido): Avança para o 6
                 setCurrentStep(6);
             }
             
@@ -552,7 +487,6 @@ const Booking: React.FC = () => {
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         setPaymentError(errorMessage);
-        console.error("Erro na EasyPay/Reserva:", error);
     } finally {
         setIsSubmittingPayment(false);
     }
@@ -565,36 +499,29 @@ const Booking: React.FC = () => {
     setCurrentStep(prev => Math.max(1, prev - 1));
   };
   
-  // Veículos disponíveis com base no serviço selecionado
   const availableVehicles = useMemo(() => {
     if (!selectedService) return vehiclesList; 
     
     return vehiclesList.filter(v => v.serviceTypes && v.serviceTypes.includes(selectedService.id)); 
   }, [selectedService, vehiclesList]);
 
-  // ----------------------------------------------------------------------
-  // CÁLCULO DO PREÇO EXIBIDO NO FRONTEND (MELHORIA)
-  // ----------------------------------------------------------------------
+  // ✅ NOVO: CÁLCULO DO PREÇO EXIBIDO NO FRONTEND
   const calculatedPrice = useMemo(() => {
     if (!selectedVehicle || !selectedService || !tripDetails) return 0;
     
-    // Assumindo que o ID "6" ou "Hora" indicam preço por hora
     const isHourly = selectedService.id === "6" || selectedService.title.includes('Hora'); 
 
     if (isHourly && tripDetails.durationHours && tripDetails.durationHours > 0) {
-        // Preço por hora * duração
         return selectedVehicle.price * tripDetails.durationHours; 
     }
     
-    // Para transfers fixos (one-way ou round-trip)
-    // Usamos o preço base, assumindo que representa o preço fixo
     return selectedVehicle.price; 
     
   }, [selectedVehicle, selectedService, tripDetails]);
 
 
   // ----------------------------------------------------------------------
-  // RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO/ERRO
+  // RENDERIZAÇÃO
   // ----------------------------------------------------------------------
   if (isLoading) {
     return (
@@ -619,8 +546,7 @@ const Booking: React.FC = () => {
     // CONTÊINER PRINCIPAL
     <div className="relative min-h-screen">
         
-        {/* 1. CAMADA DE VÍDEO DE BACKGROUND (RENDERIZAÇÃO CONDICIONAL) */}
-        {/* O vídeo só carrega se NÃO for um dispositivo móvel (largura > 768px) */}
+        {/* ✅ OTIMIZAÇÃO: CAMADA DE VÍDEO DE BACKGROUND (SÓ CARREGA NO DESKTOP) */}
         {!isMobile && (
             <div className="fixed inset-0 overflow-hidden z-[-1]">
                 <iframe
@@ -632,17 +558,15 @@ const Booking: React.FC = () => {
                     className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto translate-x-[-50%] translate-y-[-50%] pointer-events-none"
                     style={{ aspectRatio: '16/9', objectFit: 'cover' }}
                 />
-                {/* 2. OVERLAY ESCURO */}
                 <div className="absolute inset-0 bg-black/70"></div>
             </div>
         )}
         
-        {/* 2. OVERLAY ESCURO (Fundo escuro simples para o móvel) */}
+        {/* ✅ OTIMIZAÇÃO: FUNDO ESCURO SIMPLES PARA MOBILE */}
         {isMobile && <div className="fixed inset-0 bg-black/90 z-[-1]"></div>}
 
 
         {/* 3. CONTEÚDO PRINCIPAL */}
-        {/* Garante que o fundo preto no mobile se mantém por baixo do conteúdo */}
         <div className="relative pt-40 pb-12 text-white min-h-screen">
           <div className="container mx-auto px-4">
             
@@ -651,7 +575,7 @@ const Booking: React.FC = () => {
                 {t('booking.reserveNow')} - {steps[currentStep - 1]?.title || '...'}
             </h1>
 
-            {/* Progress Steps (Barra de Progresso) */}
+            {/* Progress Steps (Mantido) */}
             <div className="mb-12 drop-shadow-xl">
               <div className="flex items-center justify-center space-x-4 mb-8">
                 {steps.map((step, index) => (
@@ -696,13 +620,12 @@ const Booking: React.FC = () => {
                   </button>
               )}
 
-              {/* PASSO 1: Endereços (APENAS Recolha e Destino) */}
+              {/* PASSO 1: Endereços */}
               {currentStep === 1 && ( 
                 <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                     <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">1. {t('booking.tripAddresses') || 'Localização'}</h2>
                       
-                      {/* O BookingForm aqui apenas recolhe endereços */}
                       <BookingForm 
                         onSubmit={handleAddressSubmit} 
                         initialData={tripDetails || undefined} 
@@ -726,9 +649,24 @@ const Booking: React.FC = () => {
                       <div className="grid md:grid-cols-3 gap-6 mb-8">
                           {servicesList.map((service) => {
                               const IconComponent = service.icon ? IconMap[service.icon] : Briefcase;
+                              
+                              // ✅ OTIMIZAÇÃO: Usar um fundo mais simples no mobile para evitar carregamento de imagens grandes
+                              const serviceCardStyle = !isMobile ? { 
+                                  backgroundImage: `url(${service.image || 'https://placehold.co/400x300?text=Serviço'})`, 
+                                  backgroundSize: 'cover', 
+                                  backgroundPosition: 'center', 
+                              } : {
+                                  backgroundColor: 'rgba(255, 255, 255, 0.05)', // Fundo escuro mais simples no mobile
+                              };
+
                               return (
-                                  <div key={service.id} onClick={() => handleServiceSelection(service)} className={`relative h-56 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group ${selectedService && selectedService.id === service.id ? 'ring-4 ring-amber-400 shadow-2xl scale-[1.02]' : 'border border-gray-700 hover:ring-2 hover:ring-amber-400/50'}`} style={{ backgroundImage: `url(${service.image || 'https://placehold.co/400x300?text=Serviço'})`, backgroundSize: 'cover', backgroundPosition: 'center', }}>
-                                      <div className={`absolute inset-0 bg-black/50 transition-colors duration-300 ${selectedService && selectedService.id === service.id ? 'bg-black/30' : 'group-hover:bg-black/40'}`}></div>
+                                  <div key={service.id} onClick={() => handleServiceSelection(service)} 
+                                      className={`relative h-56 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group ${selectedService && selectedService.id === service.id ? 'ring-4 ring-amber-400 shadow-2xl scale-[1.02]' : 'border border-gray-700 hover:ring-2 hover:ring-amber-400/50'}`} 
+                                      style={serviceCardStyle}
+                                  >
+                                      {/* Aplica o overlay de escurecimento só se houver imagem de fundo */}
+                                      {!isMobile && <div className={`absolute inset-0 bg-black/50 transition-colors duration-300 ${selectedService && selectedService.id === service.id ? 'bg-black/30' : 'group-hover:bg-black/40'}`}></div>}
+                                      
                                       <div className="relative p-5 flex flex-col items-center justify-center h-full text-center">
                                           <IconComponent className="w-8 h-8 text-amber-400 mx-auto mb-3 drop-shadow-lg" />
                                           <p className="font-bold text-xl text-white drop-shadow-lg">{service.title || service.id}</p>
@@ -749,7 +687,18 @@ const Booking: React.FC = () => {
                   <h2 className="text-3xl font-bold text-white mb-6 text-center drop-shadow-lg">3. {t('booking.selectVehicle')}</h2>
                   {selectedService && (<div className="mb-8 p-4 bg-gray-800/90 rounded-lg text-center border border-gray-700"><p className="text-gray-300"><span className={goldColor}>{t('booking.serviceSelected')}:</span> <strong className="ml-2">{selectedService.title || selectedService.id}</strong></p></div>)}
                   <div className="grid md:grid-cols-2 gap-6">
-                    {availableVehicles.length > 0 ? ( availableVehicles.map((vehicle) => ( <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={handleVehicleSelect} showPrice={true} darkMode={true} isSelected={selectedVehicle?.id === vehicle.id} /> )) ) : ( 
+                    {availableVehicles.length > 0 ? ( availableVehicles.map((vehicle) => ( 
+                        // ✅ OTIMIZAÇÃO: Assumindo que VehicleCard usa loadingStrategy="lazy" para mobile
+                        <VehicleCard 
+                            key={vehicle.id} 
+                            vehicle={vehicle} 
+                            onSelect={handleVehicleSelect} 
+                            showPrice={true} 
+                            darkMode={true} 
+                            isSelected={selectedVehicle?.id === vehicle.id}
+                            loadingStrategy={isMobile ? "lazy" : "eager"} 
+                        /> 
+                    )) ) : ( 
                         <div className={`${cardBg} md:col-span-2 rounded-xl shadow-2xl p-8 text-center`}>
                             <p className="text-xl text-gray-400">
                                 {t('booking.noVehicleForService') || 'Não há veículos disponíveis para este serviço.'}
@@ -760,7 +709,7 @@ const Booking: React.FC = () => {
                 </div>
               )}
               
-              {/* PASSO 4: Data e Hora (Inclui Ida/Volta e DURAÇÃO) */}
+              {/* PASSO 4: Data e Hora */}
               {currentStep === 4 && selectedVehicle && tripDetails && selectedService && ( 
                 <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
                     <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
@@ -771,7 +720,6 @@ const Booking: React.FC = () => {
                           <p className="text-xl font-bold text-amber-400">{selectedVehicle.name}</p>
                       </div>
 
-                      {/* O BookingForm aqui apenas recolhe Data, Hora, Tipo e Duração */}
                       <BookingForm 
                           onSubmit={handleDateTimeSubmit}
                           initialData={tripDetails}
@@ -785,7 +733,6 @@ const Booking: React.FC = () => {
                           selectedVehicleId={selectedVehicle.id}
                       />
                       
-                      {/* Mensagem de Erro de Slot */}
                       {slotValidationError && (
                           <div className="mt-4 p-4 bg-red-800/70 border border-red-500 rounded-lg text-sm flex items-center">
                               <XCircle className="w-5 h-5 mr-3 text-red-300" />
@@ -848,7 +795,7 @@ const Booking: React.FC = () => {
                             // Formulário de Cliente e Pagamento
                             <form onSubmit={handlePaymentSubmit} className="space-y-6">
                                 
-                                {/* Resumo da Viagem */}
+                                {/* Resumo da Viagem (Com Preço Calculado) */}
                                 <div className="p-4 bg-gray-800/70 rounded-lg border border-gray-700">
                                     <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.tripSummary') || 'Resumo da Viagem'}</h3>
                                     <p className="text-sm text-gray-300">
@@ -900,7 +847,7 @@ const Booking: React.FC = () => {
                                                     src={PaymentImageMap[method] || 'https://placehold.co/100x40?text=Payment'} 
                                                     alt={method} 
                                                     className="h-6 object-contain mr-2" 
-                                                    loading="lazy" // MELHORIA: Carregamento Lazy para mobile
+                                                    loading="lazy" 
                                                     onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=' + method; }}
                                                 />
                                                 <span className="font-semibold">{method.toUpperCase()}</span>
@@ -939,7 +886,6 @@ const Booking: React.FC = () => {
                           <h2 className="text-4xl font-extrabold text-green-400 mb-4">{t('booking.allDone') || 'Tudo Pronto!'}</h2>
                           <p className="text-xl text-gray-300 mb-6">{t('booking.confirmationMessage') || 'A sua reserva foi efetuada com sucesso e está confirmada. Receberá um email com os detalhes.'}</p>
                           
-                          {/* Resumo da Reserva (Apenas se houver resposta) */}
                           {reservationResponse && (
                               <div className="mt-8 p-6 bg-gray-900 rounded-lg inline-block text-left border border-gray-700">
                                   <h3 className="text-lg font-bold text-amber-400 mb-2">{t('booking.reservationDetails') || 'Detalhes da Reserva'}</h3>
