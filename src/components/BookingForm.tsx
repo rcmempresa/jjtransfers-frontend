@@ -290,7 +290,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // ----------------------------------------------------------------------------------
   // ESTILOS
   // ----------------------------------------------------------------------------------
-  const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400";
+  // CLASSE CORRIGIDA: Adicionei 'appearance-none' para neutralizar estilos nativos que causam overflow
+  const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 appearance-none"; 
   const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors";
   const radioClasses = "text-amber-400 focus:ring-amber-400 bg-gray-700 border-gray-600";
   const iconColor = "text-gray-400";
@@ -440,7 +441,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
               />
             </div>
 
-            {/* Time Picker (Usando input type="time" simplificado) - Mantido */}
+            {/* Time Picker (Usando input type="time" simplificado) - CORRIGIDO */}
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 mt-2 ml-1" />
               <input
@@ -448,7 +449,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 name="time"
                 value={formData.time}
                 onChange={handleChange}
-                className={`${inputClasses} pl-12`}
+                // Aplica a classe `inputClasses` que agora inclui `appearance-none`
+                className={`${inputClasses} pl-12`} 
                 required
               />
             </div>
@@ -585,7 +587,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
                           name="time"
                           value={formData.time}
                           onChange={handleChange}
-                          className={`${inputClasses} pl-12`}
+                          // CORRIGIDO: Usa a classe `inputClasses` que agora tem `appearance-none`
+                          className={`${inputClasses} pl-12`} 
                           required
                           />
                       </div>
@@ -614,6 +617,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                               value={formData.returnTime}
                               onChange={handleChange}
                               placeholder={t('booking.returnTime')}
+                              // CORRIGIDO: Usa a classe `inputClasses` que agora tem `appearance-none`
                               className={`${inputClasses} pl-12`}
                               required
                           />
