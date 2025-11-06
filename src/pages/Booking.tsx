@@ -97,7 +97,7 @@ const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full fon
 
 
 // ======================================================================
-// ✅ HOOK PARA DETEÇÃO DE ECRÃ MÓVEL
+// ✅ HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (MANTIDO E USADO PARA OTIMIZAÇÃO)
 // ======================================================================
 const useIsMobile = (breakpoint = 768) => {
     const mediaQuery = `(max-width: ${breakpoint - 1}px)`;
@@ -116,13 +116,23 @@ const useIsMobile = (breakpoint = 768) => {
             setIsMobile(e.matches);
         };
 
-        // Adiciona o listener
-        mql.addListener(handleMediaQueryChange);
+        // mql.addListener(handleMediaQueryChange) é deprecated. 
+        // Usar addEventListener é a forma moderna.
+        if (mql.addEventListener) {
+            mql.addEventListener('change', handleMediaQueryChange);
+        } else {
+            // Fallback para navegadores mais antigos
+            mql.addListener(handleMediaQueryChange); 
+        }
         // Garante o estado inicial 
         setIsMobile(mql.matches);
 
         return () => {
-            mql.removeListener(handleMediaQueryChange);
+            if (mql.removeEventListener) {
+                mql.removeEventListener('change', handleMediaQueryChange);
+            } else {
+                mql.removeListener(handleMediaQueryChange);
+            }
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [breakpoint, mediaQuery]); 
@@ -316,6 +326,11 @@ const Booking: React.FC = () => {
     return `${tripDetails.date}T${tripDetails.time}:00.000Z`;
   }, [tripDetails]);
 
+  // ✅ NOVO MEMO: Determina se é um serviço à hora (Usado nos Passos 4 e 5)
+  const isHourlyService = useMemo(() => {
+    return selectedService?.id === "6" || selectedService?.title.includes('Hora');
+  }, [selectedService]);
+
   // FUNÇÃO DE VALIDAÇÃO DE DISPONIBILIDADE
   const validateCurrentSlotAvailability = useCallback((): boolean => {
     if (!selectedVehicle || !getSelectedDateTime) {
@@ -423,7 +438,7 @@ const Booking: React.FC = () => {
     const headers: HeadersInit = { 'Content-Type': 'application/json' };
     if (token) { headers['Authorization'] = `Bearer ${token}`; }
     
-    const isHourlyService = selectedService.id === "6" || selectedService.title.includes('Hora'); 
+    // ✅ Usa o useMemo isHourlyService
     const calculatedDurationMinutes = 
         isHourlyService && tripDetails.durationHours 
         ? tripDetails.durationHours * 60 
@@ -477,6 +492,7 @@ const Booking: React.FC = () => {
             const paymentMethod = data.payment.method;
 
             if (paymentMethod === 'cc' && data.payment.data.redirect_url) {
+                // Redireciona para o portal de pagamento de CC
                 window.location.href = data.payment.data.redirect_url;
                 return; 
             } else {
@@ -513,20 +529,40 @@ const Booking: React.FC = () => {
   const calculatedPrice = useMemo(() => {
     if (!selectedVehicle || !selectedService || !tripDetails) return 0;
     
-    const isHourly = selectedService.id === "6" || selectedService.title.includes('Hora'); 
-
-    if (isHourly && tripDetails.durationHours && tripDetails.durationHours > 0) {
+    // ✅ Usa o useMemo isHourlyService
+    if (isHourlyService && tripDetails.durationHours && tripDetails.durationHours > 0) {
         return selectedVehicle.price * tripDetails.durationHours; 
     }
     
     return selectedVehicle.price; 
     
-  }, [selectedVehicle, selectedService, tripDetails]);
+  }, [selectedVehicle, selectedService, tripDetails, isHourlyService]);
 
 
   // ----------------------------------------------------------------------
   // RENDERIZAÇÃO
   // ----------------------------------------------------------------------
+
+  // Wrapper para aplicar condicionalmente o ElectricBorder (Otimização Mobile)
+  const BorderWrapper = ({ children, step }: { children: React.ReactNode, step: number }) => {
+    // Passo 3 não usa ElectricBorder, logo só precisamos dos Passos 1, 2, 4, 5 e 6
+    if (isMobile) {
+        return <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>;
+    }
+    
+    return (
+        <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
+            <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>
+        </ElectricBorder>
+    );
+  };
+  
+  // Wrapper Simples para o Passo 3 e 6
+  const SimpleWrapper = ({ children }: { children: React.ReactNode }) => (
+      <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>
+  );
+
+
   if (isLoading) {
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
@@ -626,41 +662,38 @@ const Booking: React.FC = () => {
 
               {/* PASSO 1: Endereços */}
               {currentStep === 1 && ( 
-                <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-                    <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
-                      <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">1. {t('booking.tripAddresses') || 'Localização'}</h2>
-                      
-                      <BookingForm 
-                        onSubmit={handleAddressSubmit} 
-                        initialData={tripDetails || undefined} 
-                        compact={false} 
-                        showDateAndTime={false} 
-                        showServiceAndVehicle={false}
-                        showTripType={false} 
-                        reservedSlots={reservedSlots} 
-                        selectedVehicleId={selectedVehicle?.id} 
-                      />
-                      
-                    </div> 
-                </ElectricBorder>
+                <BorderWrapper step={1}>
+                    <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">1. {t('booking.tripAddresses') || 'Localização'}</h2>
+                    
+                    <BookingForm 
+                      onSubmit={handleAddressSubmit} 
+                      initialData={tripDetails || undefined} 
+                      compact={false} 
+                      showDateAndTime={false} 
+                      showServiceAndVehicle={false}
+                      showTripType={false} 
+                      reservedSlots={reservedSlots} 
+                      selectedVehicleId={selectedVehicle?.id} 
+                    />
+                </BorderWrapper>
               )}
 
               {/* PASSO 2: Seleção de Serviço */}
               {currentStep === 2 && ( 
-                  <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-                      <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
+                  <BorderWrapper step={2}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3 text-center">2. {t('booking.selectService')}</h2>
                       <div className="grid md:grid-cols-3 gap-6 mb-8">
                           {servicesList.map((service) => {
                               const IconComponent = service.icon ? IconMap[service.icon] : Briefcase;
                               
-                              // OTIMIZAÇÃO: Usar um fundo mais simples no mobile para evitar carregamento de imagens grandes
+                              // ✅ OTIMIZAÇÃO MOBILE: Fundo simples e sem imagem no mobile
                               const serviceCardStyle = !isMobile ? { 
                                   backgroundImage: `url(${service.image || 'https://placehold.co/400x300?text=Serviço'})`, 
                                   backgroundSize: 'cover', 
                                   backgroundPosition: 'center', 
                               } : {
-                                  backgroundColor: 'rgba(255, 255, 255, 0.05)', // Fundo escuro mais simples no mobile
+                                  backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                                  backgroundImage: 'none', // Impedir carregamento da imagem no mobile
                               };
 
                               return (
@@ -668,7 +701,7 @@ const Booking: React.FC = () => {
                                       className={`relative h-56 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group ${selectedService && selectedService.id === service.id ? 'ring-4 ring-amber-400 shadow-2xl scale-[1.02]' : 'border border-gray-700 hover:ring-2 hover:ring-amber-400/50'}`} 
                                       style={serviceCardStyle}
                                   >
-                                      {/* Aplica o overlay de escurecimento só se houver imagem de fundo */}
+                                      {/* Aplica o overlay de escurecimento só se NÃO for mobile */}
                                       {!isMobile && <div className={`absolute inset-0 bg-black/50 transition-colors duration-300 ${selectedService && selectedService.id === service.id ? 'bg-black/30' : 'group-hover:bg-black/40'}`}></div>}
                                       
                                       <div className="relative p-5 flex flex-col items-center justify-center h-full text-center">
@@ -681,8 +714,7 @@ const Booking: React.FC = () => {
                               );
                           })}
                       </div>
-                    </div>
-                  </ElectricBorder>
+                  </BorderWrapper>
               )}
 
               {/* PASSO 3: Seleção de Veículo */}
@@ -699,24 +731,23 @@ const Booking: React.FC = () => {
                             showPrice={true} 
                             darkMode={true} 
                             isSelected={selectedVehicle?.id === vehicle.id}
-                            // OTIMIZAÇÃO: Passa loadingStrategy="lazy" para o VehicleCard no mobile
+                            // ✅ OTIMIZAÇÃO: Passa loadingStrategy="lazy" para o VehicleCard no mobile
                             loadingStrategy={isMobile ? "lazy" : "eager"} 
                         /> 
                     )) ) : ( 
-                        <div className={`${cardBg} md:col-span-2 rounded-xl shadow-2xl p-8 text-center`}>
+                        <SimpleWrapper>
                             <p className="text-xl text-gray-400">
                                 {t('booking.noVehicleForService') || 'Não há veículos disponíveis para este serviço.'}
                             </p>
-                        </div> 
+                        </SimpleWrapper>
                     )}
                   </div>
                 </div>
               )}
               
-              {/* PASSO 4: Data e Hora (Início da seção cortada) */}
+              {/* PASSO 4: Data e Hora */}
               {currentStep === 4 && selectedVehicle && tripDetails && selectedService && ( 
-                <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-                    <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
+                <BorderWrapper step={4}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">4. {t('booking.tripDateTime') || 'Data e Hora'}</h2>
 
                       <div className="mb-6 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
@@ -727,7 +758,7 @@ const Booking: React.FC = () => {
                       {slotValidationError && (
                             <div className="p-4 mb-4 bg-red-800/50 text-red-300 border border-red-700 rounded-lg flex items-center">
                                 <XCircle className="w-5 h-5 mr-3" />
-                                {slotValidationError}
+                                <p className="text-sm font-medium">{slotValidationError}</p>
                             </div>
                       )}
 
@@ -738,19 +769,18 @@ const Booking: React.FC = () => {
                           showDateAndTime={true} 
                           showServiceAndVehicle={false}
                           showAddresses={false}
-                          showTripType={true}
-                          isHourlyService={selectedService.id === "6" || selectedService.title.includes('Hora')}
+                          // ✅ Usa o useMemo isHourlyService para mostrar o tipo de viagem ou duração
+                          showTripType={!isHourlyService} 
+                          showDurationHours={isHourlyService} 
                           reservedSlots={reservedSlots}
                           selectedVehicleId={selectedVehicle.id}
                       />
-                    </div> 
-                </ElectricBorder>
+                </BorderWrapper>
               )}
               
               {/* PASSO 5: Detalhes de Pagamento */}
               {currentStep === 5 && selectedVehicle && tripDetails && selectedService && ( 
-                <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-                    <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>
+                <BorderWrapper step={5}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails') || 'Detalhes do Pagamento'}</h2>
                       
                       {/* Resumo da Reserva */}
@@ -827,7 +857,7 @@ const Booking: React.FC = () => {
                           <h3 className="text-xl font-bold text-white mb-4">{t('booking.paymentMethod') || 'Método de Pagamento'}</h3>
                           <div className="flex flex-col space-y-3 mb-8">
                               {/* MB Way */}
-                              <label className="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-700/50">
+                              <label className={`flex items-center p-4 rounded-lg cursor-pointer transition-colors duration-200 ${clientForm.paymentMethod === 'mbw' ? 'bg-amber-400/20 border-amber-400' : 'border-gray-600 hover:bg-gray-700/50'}`}>
                                   <input 
                                       type="radio" 
                                       name="paymentMethod" 
@@ -840,7 +870,7 @@ const Booking: React.FC = () => {
                                   <img src={PaymentImageMap.mbw} alt="MB Way" className="ml-auto" />
                               </label>
                               {/* Multibanco */}
-                              <label className="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-700/50">
+                              <label className={`flex items-center p-4 rounded-lg cursor-pointer transition-colors duration-200 ${clientForm.paymentMethod === 'mb' ? 'bg-amber-400/20 border-amber-400' : 'border-gray-600 hover:bg-gray-700/50'}`}>
                                   <input 
                                       type="radio" 
                                       name="paymentMethod" 
@@ -853,7 +883,7 @@ const Booking: React.FC = () => {
                                   <img src={PaymentImageMap.mb} alt="Multibanco" className="ml-auto" />
                               </label>
                               {/* Cartão de Crédito */}
-                              <label className="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-700/50">
+                              <label className={`flex items-center p-4 rounded-lg cursor-pointer transition-colors duration-200 ${clientForm.paymentMethod === 'cc' ? 'bg-amber-400/20 border-amber-400' : 'border-gray-600 hover:bg-gray-700/50'}`}>
                                   <input 
                                       type="radio" 
                                       name="paymentMethod" 
@@ -869,24 +899,29 @@ const Booking: React.FC = () => {
 
                           <button 
                               type="submit" 
-                              className={buttonClasses} 
+                              // ✅ CORREÇÃO DE UX: Adiciona classes de disabled para feedback visual
+                              className={buttonClasses + (isSubmittingPayment ? ' opacity-60 cursor-not-allowed' : '')} 
                               disabled={isSubmittingPayment}
                           >
                               {isSubmittingPayment ? (
-                                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                                  <>
+                                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                                      {t('booking.submittingPayment') || 'A Processar Pagamento...'} 
+                                  </>
                               ) : (
-                                  <ArrowRight className="w-6 h-6 mr-2" />
+                                  <>
+                                      <ArrowRight className="w-6 h-6 mr-2" />
+                                      {t('booking.completeBooking') || `Pagar €${calculatedPrice.toFixed(2)} e Concluir Reserva`}
+                                  </>
                               )}
-                              {t('booking.completeBooking') || `Pagar €${calculatedPrice.toFixed(2)} e Concluir Reserva`}
                           </button>
                       </form>
-                    </div> 
-                </ElectricBorder>
+                </BorderWrapper>
               )}
               
               {/* PASSO 6: Confirmação */}
               {currentStep === 6 && reservationResponse && (
-                  <div className={`${cardBg} rounded-xl shadow-2xl p-8 text-center`}>
+                  <SimpleWrapper>
                       <Check className="w-16 h-16 text-green-500 mx-auto mb-6" />
                       <h2 className="text-4xl font-extrabold text-white mb-4">{t('booking.successTitle') || 'Reserva Confirmada!'}</h2>
                       <p className="text-xl text-gray-300 mb-8">{t('booking.successMessage') || 'A sua reserva foi efetuada com sucesso. Em breve receberá um email com os detalhes.'}</p>
@@ -924,12 +959,13 @@ const Booking: React.FC = () => {
                       >
                           {t('booking.goToHome') || 'Voltar à Página Inicial'}
                       </button>
-                  </div>
+                  </SimpleWrapper>
               )}
               
             </div>
           </div>
         </div>
+        <div className="h-20"></div> {/* Espaço para scroll */}
     </div>
   );
 };
