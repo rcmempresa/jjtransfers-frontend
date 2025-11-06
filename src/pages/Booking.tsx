@@ -12,7 +12,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import ElectricBorder from '../components/ElectricBorder'; 
 
 // ----------------------------------------------------------------------
-// TIPAGEM DINÂMICA (Mantida)
+// TIPAGEM DINÂMICA
 // ----------------------------------------------------------------------
 type ServiceType = { 
     id: string; 
@@ -76,20 +76,17 @@ export type ReservedSlot = {
 };
 // ----------------------------------------------------------------------
 
-// MAPA DE ÍCONES PARA RENDERIZAÇÃO DINÂMICA (Mantido)
 const IconMap: { [key: string]: React.ElementType } = {
     Briefcase: Briefcase, Plane: Plane, Calendar: Calendar, Clock: Clock, 
     Heart: Heart, MapPin: MapPin, Moon: Moon, Music: Music, Car: Car, 
 };
 
-// URLs de Imagens para Métodos de Pagamento (Mantido)
 const PaymentImageMap: { [key: string]: string } = {
     'mbw': 'https://placehold.co/100x40?text=MB+Way',
     'mb': 'https://placehold.co/100x40?text=Multibanco',
     'cc': 'https://placehold.co/100x40?text=Cartão',
 };
 
-// URL DO VÍDEO DE BACKGROUND (Mantido)
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
 
 // ======================================================================
@@ -115,7 +112,7 @@ const useIsMobile = (breakpoint = 768) => {
 
         // Adiciona o listener
         mql.addListener(handleMediaQueryChange);
-        // Garante o estado inicial (importante para evitar falsos positivos)
+        // Garante o estado inicial 
         setIsMobile(mql.matches);
 
         return () => {
@@ -137,12 +134,10 @@ const Booking: React.FC = () => {
   
   const initialTripDetails = location.state?.tripDetails; 
   
-  // LER QUERY STRING
   const query = new URLSearchParams(location.search);
   const initialPickup = query.get('pickup');
   const initialDropoff = query.get('dropoff');
 
-  // LÓGICA DE INICIALIZAÇÃO DO PASSO
   let startStep = 1;
   if (initialTripDetails || (initialPickup && initialDropoff)) {
       startStep = 2; 
@@ -190,7 +185,7 @@ const Booking: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   
   // ----------------------------------------------------------------------
-  // LÓGICA DE BUSCA DA API (Mantida)
+  // LÓGICA DE BUSCA DA API 
   // ----------------------------------------------------------------------
  useEffect(() => {
     const fetchBookingData = async () => {
@@ -305,7 +300,7 @@ const Booking: React.FC = () => {
   const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors flex items-center justify-center";
 
 
-  // ESTRUTURA DE 6 PASSOS (Mantida)
+  // ESTRUTURA DE 6 PASSOS
   const steps: BookingStep[] = [
     { step: 1, title: t('booking.tripAddresses') || '1. Localização', completed: currentStep > 1 },
     { step: 2, title: t('booking.selectService') || '2. Serviço', completed: currentStep > 2 },
@@ -315,7 +310,7 @@ const Booking: React.FC = () => {
     { step: 6, title: t('booking.confirmation') || '6. Confirmação', completed: false },
   ];
 
-  // FUNÇÃO DE VALIDAÇÃO DE DISPONIBILIDADE (Mantida)
+  // FUNÇÃO DE VALIDAÇÃO DE DISPONIBILIDADE
   const validateCurrentSlotAvailability = useCallback((): boolean => {
     if (!selectedVehicle || !tripDetails || !tripDetails.date || !tripDetails.time) {
         setSlotValidationError(null); 
@@ -341,7 +336,7 @@ const Booking: React.FC = () => {
     return true;
   }, [selectedVehicle, tripDetails, reservedSlots, t]);
 
-  // HANDLERS (Mantidos)
+  // --- HANDLERS ---
   const handleAddressSubmit = (details: TripDetails) => {
     setTripDetails(prev => ({
         pickupAddress: details.pickupAddress,
@@ -433,7 +428,7 @@ const Booking: React.FC = () => {
         trip_duration_minutes: calculatedDurationMinutes,
         pickup_address: tripDetails.pickupAddress,
         dropoff_address: tripDetails.dropoffAddress,
-        final_price: calculatedPrice.toFixed(2), // Preço calculado no frontend (o backend valida)
+        final_price: calculatedPrice.toFixed(2), 
         passenger_name: clientForm.passenger_name,
         passenger_email: clientForm.passenger_email,
         passenger_phone: clientForm.passenger_phone,
@@ -477,6 +472,7 @@ const Booking: React.FC = () => {
                 window.location.href = data.payment.data.redirect_url;
                 return; 
             } else {
+                // Avança para o passo 6 (Confirmação) para Multibanco, MBWay, ou sucesso de CC
                 setCurrentStep(6);
             }
             
@@ -505,7 +501,7 @@ const Booking: React.FC = () => {
     return vehiclesList.filter(v => v.serviceTypes && v.serviceTypes.includes(selectedService.id)); 
   }, [selectedService, vehiclesList]);
 
-  // ✅ NOVO: CÁLCULO DO PREÇO EXIBIDO NO FRONTEND
+  // ✅ CÁLCULO DO PREÇO EXIBIDO NO FRONTEND
   const calculatedPrice = useMemo(() => {
     if (!selectedVehicle || !selectedService || !tripDetails) return 0;
     
@@ -566,7 +562,7 @@ const Booking: React.FC = () => {
         {isMobile && <div className="fixed inset-0 bg-black/90 z-[-1]"></div>}
 
 
-        {/* 3. CONTEÚDO PRINCIPAL */}
+        {/* CONTEÚDO PRINCIPAL */}
         <div className="relative pt-40 pb-12 text-white min-h-screen">
           <div className="container mx-auto px-4">
             
@@ -575,7 +571,7 @@ const Booking: React.FC = () => {
                 {t('booking.reserveNow')} - {steps[currentStep - 1]?.title || '...'}
             </h1>
 
-            {/* Progress Steps (Mantido) */}
+            {/* Progress Steps */}
             <div className="mb-12 drop-shadow-xl">
               <div className="flex items-center justify-center space-x-4 mb-8">
                 {steps.map((step, index) => (
@@ -688,7 +684,7 @@ const Booking: React.FC = () => {
                   {selectedService && (<div className="mb-8 p-4 bg-gray-800/90 rounded-lg text-center border border-gray-700"><p className="text-gray-300"><span className={goldColor}>{t('booking.serviceSelected')}:</span> <strong className="ml-2">{selectedService.title || selectedService.id}</strong></p></div>)}
                   <div className="grid md:grid-cols-2 gap-6">
                     {availableVehicles.length > 0 ? ( availableVehicles.map((vehicle) => ( 
-                        // ✅ OTIMIZAÇÃO: Assumindo que VehicleCard usa loadingStrategy="lazy" para mobile
+                        // ✅ OTIMIZAÇÃO: Passa loadingStrategy="lazy" para o VehicleCard no mobile
                         <VehicleCard 
                             key={vehicle.id} 
                             vehicle={vehicle} 
