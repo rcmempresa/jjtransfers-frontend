@@ -1,6 +1,6 @@
-ximport React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
-import { translations } from '../translations';
+import { translations } from '../data/translations';
 import { Link } from 'react-router-dom';
 
 const COOKIE_CONSENT_KEY = 'cookie_consent_accepted';
