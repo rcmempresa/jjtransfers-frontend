@@ -268,18 +268,10 @@ const BookingForm: React.FC<BookingFormProps> = ({
         return;
     }
     
-    // 4. Nova Validação: Serviço e/ou Veículo Requeridos
-    if (showServiceAndVehicle) {
-      if (!formData.service) {
+    // 4. Validação de Serviço (Se estiver visível)
+    if (showServiceAndVehicle && !formData.service) {
         toast.error(t('booking.validation.serviceRequired') || "Por favor, selecione um tipo de serviço.");
         return;
-      }
-      /* Se quiser validar veículo, descomente:
-      if (!formData.vehicleId) {
-        toast.error(t('booking.validation.vehicleRequired') || "Por favor, selecione um veículo.");
-        return;
-      }
-      */
     }
 
     // --- FIM DAS VALIDAÇÕES ---
@@ -312,7 +304,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // ----------------------------------------------------------------------------------
   // ESTILOS
   // ----------------------------------------------------------------------------------
-  // CLASSE CORRIGIDA: Adicionei 'appearance-none' para neutralizar estilos nativos que causam overflow
   const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 appearance-none"; 
   const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors";
   const radioClasses = "text-amber-400 focus:ring-amber-400 bg-gray-700 border-gray-600";
@@ -322,8 +313,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // RENDERING
   // ----------------------------------------------------------------------------------
   
-  // O componente `Toaster` deve ser renderizado para exibir os toasts
-  // Idealmente, ele é colocado no componente de layout principal, mas funciona aqui também.
   const toasterComponent = <Toaster position="top-right" toastOptions={{
     className: 'bg-gray-800 text-white border border-gray-700 shadow-xl',
     error: {
@@ -367,19 +356,19 @@ const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-6">
-            {/* From Address (Pickup) - COM AUTOCOMPLETE E GEOLOCALIZAÇÃO - 🚨 CORRIGIDO */}
+            {/* From Address (Pickup) - 🚨 CORREÇÃO APLICADA: value={formData.pickupAddress} */}
             <div className="relative">
               <div className="flex items-center bg-gray-800/80 rounded-xl lg:rounded-2xl p-3 lg:p-5 hover:bg-gray-700/80 transition-all border border-gray-600/50">
                 <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-600 rounded-full flex items-center justify-center mr-3 lg:mr-4 shadow-sm">
                   <MapPin className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
                 </div>
-                <div className="flex-1 pr-10"> {/* Adiciona padding à direita para o botão */}
+                <div className="flex-1 pr-10">
                   <label className="block text-xs lg:text-sm font-semibold text-gray-400 mb-1">{t('booking.from')} <span className="text-xs text-amber-500">(Madeira)</span></label>
                   <input
                     type="text"
                     name="pickupAddress"
                     ref={pickupRef} 
-                    value={formData.pickupAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
+                    value={formData.pickupAddress} // ✅ CORRIGIDO
                     onChange={handleChange}
                     placeholder={t('booking.addressPlaceholder')}
                     className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm lg:text-lg"
@@ -400,7 +389,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
             {/* To Address or Duration */}
             {activeTab === 'one-way' ? (
-              /* To Address (Dropoff) - COM AUTOCOMPLETE - 🚨 CORRIGIDO */
+              /* To Address (Dropoff) - 🚨 CORREÇÃO APLICADA: value={formData.dropoffAddress} */
               <div className="relative">
                 <div className="flex items-center bg-gray-800/80 rounded-xl lg:rounded-2xl p-3 lg:p-5 hover:bg-gray-700/80 transition-all border border-gray-600/50">
                   <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-600 rounded-full flex items-center justify-center mr-3 lg:mr-4 shadow-sm">
@@ -412,7 +401,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                       type="text"
                       name="dropoffAddress"
                       ref={dropoffRef} 
-                      value={formData.dropoffAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
+                      value={formData.dropoffAddress} // ✅ CORRIGIDO
                       onChange={handleChange}
                       placeholder={t('booking.addressPlaceholder')}
                       className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm lg:text-lg"
@@ -470,7 +459,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 name="time"
                 value={formData.time}
                 onChange={handleChange}
-                // Aplica a classe `inputClasses` que agora inclui `appearance-none`
                 className={`${inputClasses} pl-12`} 
                 required
               />
@@ -512,14 +500,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
         {/* 🚨 BLOC 1: Endereços (Visível APENAS no Passo 1) */}
         {showAddresses && (
           <>
-              {/* Pickup Address - COM AUTOCOMPLETE E GEOLOCALIZAÇÃO - 🚨 CORRIGIDO */}
+              {/* Pickup Address - 🚨 CORREÇÃO APLICADA: value={formData.pickupAddress} */}
               <div className="relative">
                 <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
                 <input
                   type="text"
                   name="pickupAddress"
                   ref={pickupRef} 
-                  value={formData.pickupAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
+                  value={formData.pickupAddress} // ✅ CORRIGIDO
                   onChange={handleChange}
                   placeholder={`${t('booking.pickupAddress')} (Madeira)`}
                   className={`${inputClasses} pl-12 pr-12`} // Ajuste para o botão
@@ -537,14 +525,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 </button>
               </div>
 
-              {/* Dropoff Address - COM AUTOCOMPLETE (Mantido) - 🚨 CORRIGIDO */}
+              {/* Dropoff Address - 🚨 CORREÇÃO APLICADA: value={formData.dropoffAddress} */}
               <div className="relative">
                 <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
                 <input
                   type="text"
                   name="dropoffAddress"
                   ref={dropoffRef} 
-                  value={formData.dropoffAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
+                  value={formData.dropoffAddress} // ✅ CORRIGIDO
                   onChange={handleChange}
                   placeholder={`${t('booking.dropoffAddress')} (Madeira)`}
                   className={`${inputClasses} pl-12`}
@@ -608,7 +596,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
                           name="time"
                           value={formData.time}
                           onChange={handleChange}
-                          // CORRIGIDO: Usa a classe `inputClasses` que agora tem `appearance-none`
                           className={`${inputClasses} pl-12`} 
                           required
                           />
@@ -638,7 +625,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
                               value={formData.returnTime}
                               onChange={handleChange}
                               placeholder={t('booking.returnTime')}
-                              // CORRIGIDO: Usa a classe `inputClasses` que agora tem `appearance-none`
                               className={`${inputClasses} pl-12`}
                               required
                           />
