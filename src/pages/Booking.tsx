@@ -1,18 +1,21 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import toast, { Toaster } from 'react-hot-toast'; 
+
 // Ícones
 import { 
     Check, Briefcase, Lock, Plane, Calendar, Clock, Heart, MapPin, 
     Moon, Music, Car, Loader2, ArrowRight, CornerDownRight, XCircle
 } from 'lucide-react'; 
-// Componentes (assumidos como existentes)
+
+// Componentes (assumindo a sua estrutura de ficheiros)
 import BookingForm from '../components/BookingForm'; 
 import VehicleCard from '../components/VehicleCard';
+import ClientDetailsStep from '../components/ClientDetailsStep'; // 🚨 Importação do novo componente
 import { useLanguage } from '../hooks/useLanguage';
-import ElectricBorder from '../components/ElectricBorder'; 
-
+import ElectricBorder from '../components/ElectricBorder'; // Se usa o seu ElectricBorder
 // ----------------------------------------------------------------------
-// TIPAGEM DINÂMICA
+// TIPAGEM DINÂMICA (Manter a que usa no seu projeto)
 // ----------------------------------------------------------------------
 type ServiceType = { 
     id: string; 
@@ -25,7 +28,7 @@ type ServiceType = {
 type Vehicle = { 
     id: string; 
     name: string; 
-    price: number; // base_price_per_hour
+    price: number; 
     capacity: number; 
     luggage_capacity: number; 
     type: string; 
@@ -33,7 +36,7 @@ type Vehicle = {
     serviceTypes: string[]; 
 }; 
 
-type TripDetails = { 
+export type TripDetails = { 
     pickupAddress: string; 
     dropoffAddress: string; 
     date: string; 
@@ -41,7 +44,7 @@ type TripDetails = {
     tripType: 'one-way' | 'round-trip'; 
     returnDate?: string; 
     returnTime?: string; 
-    durationHours?: number; // Duração para serviços à hora
+    durationHours?: number;
 };
 
 type BookingStep = { 
@@ -71,8 +74,8 @@ interface ReservationResponse {
 }
 
 export type ReservedSlot = {
-    iso_date: string; // Ex: "2025-10-15T10:00:00.000Z"
-    vehicle_id: string; // O ID do veículo que está a bloquear o slot
+    iso_date: string;
+    vehicle_id: string;
 };
 // ----------------------------------------------------------------------
 
@@ -89,16 +92,11 @@ const PaymentImageMap: { [key: string]: string } = {
 
 const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mute=1&loop=1&playlist=AOTGBDcDdEQ&controls=0&modestbranding=1&rel=0";
 
-// Variáveis de Estilo (Movidas para fora do componente para evitar recriação)
+// Variáveis de Estilo
 const goldColor = 'text-amber-400';
 const cardBg = 'bg-black/80 border border-gray-800'; 
-const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800/90 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400";
-const buttonClasses = "w-full bg-amber-400 text-black px-6 py-4 rounded-full font-bold text-lg hover:bg-amber-300 transition-colors flex items-center justify-center";
 
-
-// ======================================================================
-// ✅ HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (MANTIDO E USADO PARA OTIMIZAÇÃO)
-// ======================================================================
+// HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (Se estiver a usar)
 const useIsMobile = (breakpoint = 768) => {
     const mediaQuery = `(max-width: ${breakpoint - 1}px)`;
     
@@ -116,15 +114,11 @@ const useIsMobile = (breakpoint = 768) => {
             setIsMobile(e.matches);
         };
 
-        // mql.addListener(handleMediaQueryChange) é deprecated. 
-        // Usar addEventListener é a forma moderna.
         if (mql.addEventListener) {
             mql.addEventListener('change', handleMediaQueryChange);
         } else {
-            // Fallback para navegadores mais antigos
             mql.addListener(handleMediaQueryChange); 
         }
-        // Garante o estado inicial 
         setIsMobile(mql.matches);
 
         return () => {
@@ -160,7 +154,7 @@ const Booking: React.FC = () => {
   }
   
   // ----------------------------------------------------------------------
-  // ESTADOS PRINCIPAIS E DE GESTÃO DA API
+  // ESTADOS PRINCIPAIS
   // ----------------------------------------------------------------------
   const [servicesList, setServicesList] = useState<ServiceType[]>([]);
   const [vehiclesList, setVehiclesList] = useState<Vehicle[]>([]);
@@ -174,12 +168,13 @@ const Booking: React.FC = () => {
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [reservationResponse, setReservationResponse] = useState<ReservationResponse | null>(null);
+  
   const [clientForm, setClientForm] = useState({
       passenger_name: '',
       passenger_email: '',
       passenger_phone: '',
       special_requests: '',
-      paymentMethod: 'mbw', // Default para MB Way
+      paymentMethod: 'mbw' as 'mbw' | 'mb' | 'cc',
   });
   
   const [slotValidationError, setSlotValidationError] = useState<string | null>(null); 
@@ -201,9 +196,10 @@ const Booking: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   
   // ----------------------------------------------------------------------
-  // LÓGICA DE BUSCA DA API 
+  // LÓGICA DE BUSCA DA API (Mantida)
   // ----------------------------------------------------------------------
- useEffect(() => {
+  useEffect(() => {
+    // ... lógica de fetch data ...
     const fetchBookingData = async () => {
         setIsLoading(true);
         setApiError(null);
@@ -309,8 +305,7 @@ const Booking: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, navigate, location.search]); 
 
-
-  // ESTRUTURA DE 6 PASSOS
+  // ESTRUTURA DE 6 PASSOS (Mantida)
   const steps: BookingStep[] = [
     { step: 1, title: t('booking.tripAddresses') || '1. Localização', completed: currentStep > 1 },
     { step: 2, title: t('booking.selectService') || '2. Serviço', completed: currentStep > 2 },
@@ -320,19 +315,18 @@ const Booking: React.FC = () => {
     { step: 6, title: t('booking.confirmation') || '6. Confirmação', completed: false },
   ];
 
-  // ✅ MELHORIA: CÁLCULO DO DATETIME SELECIONADO (MEMOIZED)
+  // MEMOS (Mantidos)
   const getSelectedDateTime = useMemo(() => {
     if (!tripDetails?.date || !tripDetails?.time) return null;
     return `${tripDetails.date}T${tripDetails.time}:00.000Z`;
   }, [tripDetails]);
 
-  // ✅ NOVO MEMO: Determina se é um serviço à hora (Usado nos Passos 4 e 5)
   const isHourlyService = useMemo(() => {
-    return selectedService?.id === "6" || selectedService?.title.includes('Hora');
+    return selectedService?.id === "6" || (selectedService?.title.includes('Hora') ?? false);
   }, [selectedService]);
 
-  // FUNÇÃO DE VALIDAÇÃO DE DISPONIBILIDADE
   const validateCurrentSlotAvailability = useCallback((): boolean => {
+    // ... lógica de validação (mantida) ...
     if (!selectedVehicle || !getSelectedDateTime) {
         setSlotValidationError(null); 
         return true; 
@@ -355,7 +349,48 @@ const Booking: React.FC = () => {
     return true;
   }, [selectedVehicle, getSelectedDateTime, reservedSlots, t]);
 
-  // --- HANDLERS ---
+  const availableVehicles = useMemo(() => {
+    if (!selectedService) return vehiclesList; 
+    
+    return vehiclesList.filter(v => v.serviceTypes && v.serviceTypes.includes(selectedService.id)); 
+  }, [selectedService, vehiclesList]);
+
+  const calculatedPrice = useMemo(() => {
+    if (!selectedVehicle || !selectedService || !tripDetails) return 0;
+    
+    if (isHourlyService && tripDetails.durationHours && tripDetails.durationHours > 0) {
+        return selectedVehicle.price * tripDetails.durationHours; 
+    }
+    
+    return selectedVehicle.price; 
+    
+  }, [selectedVehicle, selectedService, tripDetails, isHourlyService]);
+
+
+  // ----------------------------------------------------------------------
+  // HANDLERS (COM CORREÇÃO DE STABILITY/FOCUS)
+  // ----------------------------------------------------------------------
+
+  // Handlers simples (envolvidos em useCallback)
+  const handleServiceSelection = useCallback((service: ServiceType) => {
+      setSelectedService(service);
+      setCurrentStep(3); 
+  }, []);
+
+  const handleVehicleSelect = useCallback((vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setCurrentStep(4); 
+    setShowVehicleWarning(false);
+  }, []);
+
+  // 🚨 CORREÇÃO: Usar useCallback para estabilizar a função. 
+  // Isso impede que o ClientDetailsStep (memoizado) se re-renderize em cada tecla.
+  const handleClientFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setClientForm(prev => ({ ...prev, [name]: value }));
+  }, []); // Dependências vazias = função estável
+
+  // Handler de submissão de Endereço e Data/Hora (mantidos)
   const handleAddressSubmit = (details: TripDetails) => {
     setTripDetails(prev => ({
         pickupAddress: details.pickupAddress,
@@ -373,9 +408,8 @@ const Booking: React.FC = () => {
   const handleDateTimeSubmit = (details: TripDetails) => {
     setTripDetails(details);
     
-    // Verifica se há veículo selecionado ANTES de validar o slot
     if (!selectedVehicle) {
-        setSlotValidationError(t('booking.noVehicleTip') || "Por favor, selecione um veículo antes de escolher a data/hora.");
+        toast.error(t('booking.noVehicleTip') || "Por favor, selecione um veículo antes de escolher a data/hora.");
         setCurrentStep(3);
         return;
     }
@@ -387,6 +421,10 @@ const Booking: React.FC = () => {
     );
 
     if (isCurrentlyReserved) {
+        toast.error(
+            t('booking.slotUnavailableError') || 
+            `O veículo ${selectedVehicle.name} ficou indisponível para ${details.date} às ${details.time}. Por favor, escolha outra data ou hora.`
+        );
         setSlotValidationError(
             t('booking.slotUnavailableError') || 
             `O veículo ${selectedVehicle.name} ficou indisponível para ${details.date} às ${details.time}. Por favor, escolha outra data ou hora.`
@@ -397,35 +435,20 @@ const Booking: React.FC = () => {
     
     setCurrentStep(5); 
   };
-  
-  // ✅ OTIMIZAÇÃO: useCallback para estabilidade do ServiceCard
-  const handleServiceSelection = useCallback((service: ServiceType) => {
-      setSelectedService(service);
-      setCurrentStep(3); 
-  }, []);
 
-  // ✅ OTIMIZAÇÃO: useCallback para estabilidade do VehicleCard (Principal alvo de lentidão no mobile)
-  const handleVehicleSelect = useCallback((vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
-    setCurrentStep(4); 
-    setShowVehicleWarning(false);
-  }, []);
-
-  const handleClientFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      const { name, value } = e.target;
-      setClientForm(prev => ({ ...prev, [name]: value }));
-  };
-
+  // Handler de submissão de Pagamento (Mantido)
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // ... Lógica de validação e submissão da API (mantida) ...
     if (!selectedVehicle || !tripDetails || !selectedService || !tripDetails.date || !tripDetails.time || !clientForm.passenger_email || !clientForm.passenger_name || !clientForm.passenger_phone) {
+        toast.error(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
         setPaymentError(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
         return;
     }
     
-    // Usa a função de validação memoizada
     if (!validateCurrentSlotAvailability()) {
+        toast.error(t('booking.slotUnavailableError') || "O horário escolhido ficou indisponível no último momento. Por favor, corrija o Passo 4 antes de submeter.");
         setPaymentError(t('booking.slotUnavailableError') || "O horário escolhido ficou indisponível no último momento. Por favor, corrija o Passo 4 antes de submeter.");
         setCurrentStep(4); 
         return; 
@@ -438,7 +461,6 @@ const Booking: React.FC = () => {
     const headers: HeadersInit = { 'Content-Type': 'application/json' };
     if (token) { headers['Authorization'] = `Bearer ${token}`; }
     
-    // ✅ Usa o useMemo isHourlyService
     const calculatedDurationMinutes = 
         isHourlyService && tripDetails.durationHours 
         ? tripDetails.durationHours * 60 
@@ -478,6 +500,7 @@ const Booking: React.FC = () => {
         if (!response.ok) {
             if (response.status === 409) {
                  const errorMessage = responseData.message || t('booking.slotUnavailableError') || 'O slot de reserva ficou indisponível. Por favor, volte ao Passo 4 e tente outra hora.';
+                 toast.error(errorMessage);
                  setPaymentError(errorMessage);
                  setCurrentStep(4); 
                  throw new Error(errorMessage);
@@ -492,26 +515,27 @@ const Booking: React.FC = () => {
             const paymentMethod = data.payment.method;
 
             if (paymentMethod === 'cc' && data.payment.data.redirect_url) {
-                // Redireciona para o portal de pagamento de CC
                 window.location.href = data.payment.data.redirect_url;
                 return; 
             } else {
-                // Avança para o passo 6 (Confirmação) para Multibanco, MBWay, ou sucesso de CC
                 setCurrentStep(6);
             }
             
         } else {
+            toast.error(data.message);
             setPaymentError(data.message);
         }
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
+        toast.error(errorMessage);
         setPaymentError(errorMessage);
     } finally {
         setIsSubmittingPayment(false);
     }
   };
-  
+
+
   const handleGoBack = () => {
     if (currentStep === 6) {
         return;
@@ -519,33 +543,11 @@ const Booking: React.FC = () => {
     setCurrentStep(prev => Math.max(1, prev - 1));
   };
   
-  const availableVehicles = useMemo(() => {
-    if (!selectedService) return vehiclesList; 
-    
-    return vehiclesList.filter(v => v.serviceTypes && v.serviceTypes.includes(selectedService.id)); 
-  }, [selectedService, vehiclesList]);
-
-  // ✅ CÁLCULO DO PREÇO EXIBIDO NO FRONTEND (MEMOIZED)
-  const calculatedPrice = useMemo(() => {
-    if (!selectedVehicle || !selectedService || !tripDetails) return 0;
-    
-    // ✅ Usa o useMemo isHourlyService
-    if (isHourlyService && tripDetails.durationHours && tripDetails.durationHours > 0) {
-        return selectedVehicle.price * tripDetails.durationHours; 
-    }
-    
-    return selectedVehicle.price; 
-    
-  }, [selectedVehicle, selectedService, tripDetails, isHourlyService]);
-
-
   // ----------------------------------------------------------------------
   // RENDERIZAÇÃO
   // ----------------------------------------------------------------------
 
-  // Wrapper para aplicar condicionalmente o ElectricBorder (Otimização Mobile)
   const BorderWrapper = ({ children, step }: { children: React.ReactNode, step: number }) => {
-    // Passo 3 não usa ElectricBorder, logo só precisamos dos Passos 1, 2, 4, 5 e 6
     if (isMobile) {
         return <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>;
     }
@@ -557,7 +559,6 @@ const Booking: React.FC = () => {
     );
   };
   
-  // Wrapper Simples para o Passo 3 e 6
   const SimpleWrapper = ({ children }: { children: React.ReactNode }) => (
       <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>
   );
@@ -585,6 +586,7 @@ const Booking: React.FC = () => {
   return (
     // CONTÊINER PRINCIPAL
     <div className="relative min-h-screen">
+        <Toaster position="top-right" /> 
         
         {/* OTIMIZAÇÃO: CAMADA DE VÍDEO DE BACKGROUND (SÓ CARREGA NO DESKTOP) */}
         {!isMobile && (
@@ -686,14 +688,13 @@ const Booking: React.FC = () => {
                           {servicesList.map((service) => {
                               const IconComponent = service.icon ? IconMap[service.icon] : Briefcase;
                               
-                              // ✅ OTIMIZAÇÃO MOBILE: Fundo simples e sem imagem no mobile
                               const serviceCardStyle = !isMobile ? { 
                                   backgroundImage: `url(${service.image || 'https://placehold.co/400x300?text=Serviço'})`, 
                                   backgroundSize: 'cover', 
                                   backgroundPosition: 'center', 
                               } : {
                                   backgroundColor: 'rgba(255, 255, 255, 0.05)', 
-                                  backgroundImage: 'none', // Impedir carregamento da imagem no mobile
+                                  backgroundImage: 'none', 
                               };
 
                               return (
@@ -701,7 +702,6 @@ const Booking: React.FC = () => {
                                       className={`relative h-56 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group ${selectedService && selectedService.id === service.id ? 'ring-4 ring-amber-400 shadow-2xl scale-[1.02]' : 'border border-gray-700 hover:ring-2 hover:ring-amber-400/50'}`} 
                                       style={serviceCardStyle}
                                   >
-                                      {/* Aplica o overlay de escurecimento só se NÃO for mobile */}
                                       {!isMobile && <div className={`absolute inset-0 bg-black/50 transition-colors duration-300 ${selectedService && selectedService.id === service.id ? 'bg-black/30' : 'group-hover:bg-black/40'}`}></div>}
                                       
                                       <div className="relative p-5 flex flex-col items-center justify-center h-full text-center">
@@ -731,7 +731,6 @@ const Booking: React.FC = () => {
                             showPrice={true} 
                             darkMode={true} 
                             isSelected={selectedVehicle?.id === vehicle.id}
-                            // ✅ OTIMIZAÇÃO: Passa loadingStrategy="lazy" para o VehicleCard no mobile
                             loadingStrategy={isMobile ? "lazy" : "eager"} 
                         /> 
                     )) ) : ( 
@@ -742,7 +741,7 @@ const Booking: React.FC = () => {
                         </SimpleWrapper>
                     )}
                   </div>
-                </div>
+                  </div>
               )}
               
               {/* PASSO 4: Data e Hora */}
@@ -769,7 +768,6 @@ const Booking: React.FC = () => {
                           showDateAndTime={true} 
                           showServiceAndVehicle={false}
                           showAddresses={false}
-                          // ✅ Usa o useMemo isHourlyService para mostrar o tipo de viagem ou duração
                           showTripType={!isHourlyService} 
                           showDurationHours={isHourlyService} 
                           reservedSlots={reservedSlots}
@@ -778,7 +776,7 @@ const Booking: React.FC = () => {
                 </BorderWrapper>
               )}
               
-              {/* PASSO 5: Detalhes de Pagamento */}
+              {/* PASSO 5: Detalhes de Pagamento (Com o componente isolado ClientDetailsStep) */}
               {currentStep === 5 && selectedVehicle && tripDetails && selectedService && ( 
                 <BorderWrapper step={5}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails') || 'Detalhes do Pagamento'}</h2>
@@ -814,108 +812,19 @@ const Booking: React.FC = () => {
                           </div>
                       )}
 
-                      {/* Formulário de Cliente e Pagamento */}
-                      <form onSubmit={handlePaymentSubmit}>
-                          <h3 className="text-xl font-bold text-white mb-4">{t('booking.contactDetails') || 'Dados do Contacto'}</h3>
-                          <div className="space-y-4 mb-8">
-                              <input 
-                                  type="text" 
-                                  name="passenger_name" 
-                                  placeholder={t('form.fullName') || "Nome Completo"} 
-                                  value={clientForm.passenger_name} 
-                                  onChange={handleClientFormChange} 
-                                  className={inputClasses}
-                                  required
-                              />
-                              <input 
-                                  type="email" 
-                                  name="passenger_email" 
-                                  placeholder={t('form.email') || "Email"} 
-                                  value={clientForm.passenger_email} 
-                                  onChange={handleClientFormChange} 
-                                  className={inputClasses}
-                                  required
-                              />
-                              <input 
-                                  type="tel" 
-                                  name="passenger_phone" 
-                                  placeholder={t('form.phone') || "Telefone (ex: 912345678)"} 
-                                  value={clientForm.passenger_phone} 
-                                  onChange={handleClientFormChange} 
-                                  className={inputClasses}
-                                  required
-                              />
-                              <textarea
-                                  name="special_requests"
-                                  placeholder={t('form.specialRequests') || "Pedidos Especiais (Ex: cadeira de criança, paragem extra...)"}
-                                  value={clientForm.special_requests}
-                                  onChange={handleClientFormChange}
-                                  className={`${inputClasses} h-24`}
-                              />
-                          </div>
-                          
-                          <h3 className="text-xl font-bold text-white mb-4">{t('booking.paymentMethod') || 'Método de Pagamento'}</h3>
-                          <div className="flex flex-col space-y-3 mb-8">
-                              {/* MB Way */}
-                              <label className={`flex items-center p-4 rounded-lg cursor-pointer transition-colors duration-200 ${clientForm.paymentMethod === 'mbw' ? 'bg-amber-400/20 border-amber-400' : 'border-gray-600 hover:bg-gray-700/50'}`}>
-                                  <input 
-                                      type="radio" 
-                                      name="paymentMethod" 
-                                      value="mbw" 
-                                      checked={clientForm.paymentMethod === 'mbw'} 
-                                      onChange={handleClientFormChange}
-                                      className="form-radio h-5 w-5 text-amber-400 border-gray-600 bg-gray-800 focus:ring-amber-400"
-                                  />
-                                  <span className="ml-3 font-medium text-white">MB Way</span>
-                                  <img src={PaymentImageMap.mbw} alt="MB Way" className="ml-auto" />
-                              </label>
-                              {/* Multibanco */}
-                              <label className={`flex items-center p-4 rounded-lg cursor-pointer transition-colors duration-200 ${clientForm.paymentMethod === 'mb' ? 'bg-amber-400/20 border-amber-400' : 'border-gray-600 hover:bg-gray-700/50'}`}>
-                                  <input 
-                                      type="radio" 
-                                      name="paymentMethod" 
-                                      value="mb" 
-                                      checked={clientForm.paymentMethod === 'mb'} 
-                                      onChange={handleClientFormChange}
-                                      className="form-radio h-5 w-5 text-amber-400 border-gray-600 bg-gray-800 focus:ring-amber-400"
-                                  />
-                                  <span className="ml-3 font-medium text-white">Multibanco (Entidade/Referência)</span>
-                                  <img src={PaymentImageMap.mb} alt="Multibanco" className="ml-auto" />
-                              </label>
-                              {/* Cartão de Crédito */}
-                              <label className={`flex items-center p-4 rounded-lg cursor-pointer transition-colors duration-200 ${clientForm.paymentMethod === 'cc' ? 'bg-amber-400/20 border-amber-400' : 'border-gray-600 hover:bg-gray-700/50'}`}>
-                                  <input 
-                                      type="radio" 
-                                      name="paymentMethod" 
-                                      value="cc" 
-                                      checked={clientForm.paymentMethod === 'cc'} 
-                                      onChange={handleClientFormChange}
-                                      className="form-radio h-5 w-5 text-amber-400 border-gray-600 bg-gray-800 focus:ring-amber-400"
-                                  />
-                                  <span className="ml-3 font-medium text-white">{t('booking.creditCard') || 'Cartão de Crédito'}</span>
-                                  <img src={PaymentImageMap.cc} alt="Cartão" className="ml-auto" />
-                              </label>
-                          </div>
-
-                          <button 
-                              type="submit" 
-                              // ✅ CORREÇÃO DE UX: Adiciona classes de disabled para feedback visual
-                              className={buttonClasses + (isSubmittingPayment ? ' opacity-60 cursor-not-allowed' : '')} 
-                              disabled={isSubmittingPayment}
-                          >
-                              {isSubmittingPayment ? (
-                                  <>
-                                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                                      {t('booking.submittingPayment') || 'A Processar Pagamento...'} 
-                                  </>
-                              ) : (
-                                  <>
-                                      <ArrowRight className="w-6 h-6 mr-2" />
-                                      {t('booking.completeBooking') || `Pagar €${calculatedPrice.toFixed(2)} e Concluir Reserva`}
-                                  </>
-                              )}
-                          </button>
-                      </form>
+                      {/* 🚨 Integração do ClienteDetailsStep */}
+                      <ClientDetailsStep
+                          calculatedPrice={calculatedPrice}
+                          clientForm={clientForm}
+                          tripDetails={tripDetails}
+                          selectedVehicle={selectedVehicle}
+                          selectedService={selectedService}
+                          paymentError={paymentError}
+                          isSubmittingPayment={isSubmittingPayment}
+                          handleClientFormChange={handleClientFormChange}
+                          handlePaymentSubmit={handlePaymentSubmit}
+                      />
+                      
                 </BorderWrapper>
               )}
               
@@ -965,7 +874,7 @@ const Booking: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="h-20"></div> {/* Espaço para scroll */}
+        <div className="h-20"></div> 
     </div>
   );
 };
