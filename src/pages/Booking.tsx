@@ -11,7 +11,7 @@ import {
 // Componentes (assumindo a sua estrutura de ficheiros)
 import BookingForm from '../components/BookingForm'; 
 import VehicleCard from '../components/VehicleCard';
-import ClientDetailsStep from '../components/ClientDetailsStep'; // 🚨 IMPORTAÇÃO DO COMPONENTE CORRIGIDO
+import ClientDetailsStep from '../components/ClientDetailsStep'; 
 import { useLanguage } from '../hooks/useLanguage';
 import ElectricBorder from '../components/ElectricBorder'; 
 
@@ -383,12 +383,11 @@ const Booking: React.FC = () => {
     setShowVehicleWarning(false);
   }, []);
 
-  // 🚨 CORREÇÃO CRÍTICA: Este handler é a chave para o React.memo funcionar corretamente
+  // 🚨 CRÍTICO: Este handler deve ser estável (dependências vazias)
   const handleClientFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
-      // setClientForm é estável
       setClientForm(prev => ({ ...prev, [name]: value }));
-  }, []); // Dependências vazias = Função estável
+  }, []); 
 
   // Handler de submissão de Endereço e Data/Hora (mantidos)
   const handleAddressSubmit = (details: TripDetails) => {
@@ -436,14 +435,9 @@ const Booking: React.FC = () => {
     setCurrentStep(5); 
   };
 
-  // Handler de submissão de Pagamento (Mantido)
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
+  // Memoizar o handler de pagamento para evitar instabilidade no componente filho
+  const handlePaymentSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // O código de submissão da API depende das variáveis de estado (selectedVehicle, tripDetails, clientForm, etc.)
-    // Como esta função é chamada apenas uma vez no Passo 5, não precisamos de a memoizar,
-    // mas se o fizermos, as dependências devem incluir todas as vars que ela usa (o que a tornaria instável para o memo do filho).
-    // O que importa é que o handler PASSADO para o filho (handleClientFormChange) seja estável.
     
     if (!selectedVehicle || !tripDetails || !selectedService || !tripDetails.date || !tripDetails.time || !clientForm.passenger_email || !clientForm.passenger_name || !clientForm.passenger_phone) {
         toast.error(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
@@ -537,7 +531,12 @@ const Booking: React.FC = () => {
     } finally {
         setIsSubmittingPayment(false);
     }
-  };
+  }, [
+      // Lista de dependências que o handler usa:
+      selectedVehicle, tripDetails, selectedService, clientForm, t, calculatedPrice,
+      isHourlyService, validateCurrentSlotAvailability, reservedSlots, 
+      setIsSubmittingPayment, setPaymentError, setCurrentStep, setReservationResponse
+  ]);
 
 
   const handleGoBack = () => {
@@ -815,17 +814,22 @@ const Booking: React.FC = () => {
                               {paymentError}
                           </div>
                       )}
-
-                      {/* 🚨 Integração do ClienteDetailsStep com props estáveis/mínimas */}
+                      
+                      {/* 🚨 DESESTRUTURAR AQUI para passar props estáveis */}
                       <ClientDetailsStep
                           calculatedPrice={calculatedPrice}
-                          clientForm={clientForm}
+                          
+                          // A CHAVE DA CORREÇÃO: Passar as strings individuais
+                          passenger_name={clientForm.passenger_name}
+                          passenger_email={clientForm.passenger_email}
+                          passenger_phone={clientForm.passenger_phone}
+                          special_requests={clientForm.special_requests}
+                          paymentMethod={clientForm.paymentMethod}
+                          
                           paymentError={paymentError}
                           isSubmittingPayment={isSubmittingPayment}
                           handleClientFormChange={handleClientFormChange}
                           handlePaymentSubmit={handlePaymentSubmit}
-                          // REMOVIDAS: tripDetails, selectedVehicle, selectedService 
-                          // para evitar que re-renderizações acidentais no pai quebrem o foco.
                       />
                       
                 </BorderWrapper>
