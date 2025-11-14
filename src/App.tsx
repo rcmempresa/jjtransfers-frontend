@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Importa useLanguage para aceder às traduções e LanguageProvider
 import { LanguageProvider, useLanguage } from './hooks/useLanguage'; 
-import { translations } from './data/translations'; 
+import { translations } from './data/translations'; // Atualizado para './data/translations' 
 import { AuthProvider } from './hooks/useAuth'; 
 
 // Componente para forçar o scroll para o topo em cada navegação
@@ -44,8 +44,12 @@ const COOKIE_CONSENT_KEY = 'cookie_consent_accepted';
 const AppContent = () => {
     // Devemos usar o useLanguage aqui, pois estamos dentro do LanguageProvider
     const { lang } = useLanguage();
-    // O t deve ser verificado, pois as traduções podem não estar carregadas imediatamente
-    const t = translations[lang] || {}; 
+    
+    // **CORREÇÃO:** Garante que há um idioma efetivo ('pt' como fallback)
+    const effectiveLang = lang || 'pt';
+    
+    // O 't' é carregado com o idioma efetivo.
+    const t = translations[effectiveLang] || {}; 
 
     // 1. Estados dos Cookies
     const [showCookieBanner, setShowCookieBanner] = useState(false);
