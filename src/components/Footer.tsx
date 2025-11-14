@@ -1,8 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-// Adicionado ChevronRight para um look mais moderno nas listas
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Zap, ShieldCheck, ChevronRight } from 'lucide-react';
-// Assumindo que useLanguage é um hook que fornece { t }
 import { useLanguage } from '../hooks/useLanguage';
 
 
@@ -27,18 +25,21 @@ const Footer: React.FC = () => {
   ];
 
   const serviceLinks = [
-      { path: '/services/', key: 'services.list.airport.title' },
-      { path: '/services/', key: 'services.list.executive.title' },
-      { path: '/services/', key: 'services.list.weddings.title' },
-      { path: '/services/', key: 'services.list.tours.title' }, 
+      { path: '/services/airport-transfer', key: 'services.list.airport.title', reactKey: 'airport' },
+      { path: '/services/executive', key: 'services.list.executive.title', reactKey: 'executive' },
+      { path: '/services/weddings', key: 'services.list.weddings.title', reactKey: 'weddings' },
+      { path: '/services/tours', key: 'services.list.tours.title', reactKey: 'tours' }, 
   ];
 
-  // CORREÇÃO AQUI: Removemos o '|| "Fallback Text"'
-  // Pois o fallback deve ser gerido pela função 't' ou pelo valor predefinido no ficheiro de tradução.
+  // 🚨 ATUALIZAÇÃO CHAVE: 'isExternal: true' para o Livro de Reclamações
   const legalLinks = [
-    { path: '/privacy', key: 'footer.privacyPolicy' },
-    { path: '/terms', key: 'footer.termsAndConditions' },
-    { path: '/complaints-book', key: 'footer.complaintsBook' },
+    { path: '/privacy', key: 'footer.privacyPolicy', isExternal: false },
+    { path: '/terms', key: 'footer.termsAndConditions', isExternal: false },
+    { 
+        path: 'https://www.livroreclamacoes.pt/inicio', 
+        key: 'footer.complaintsBook', 
+        isExternal: true 
+    },
   ];
 
   // Efeito hover sofisticado para os ícones sociais
@@ -125,11 +126,10 @@ const Footer: React.FC = () => {
           <div>
             <h4 className={`text-lg font-bold mb-5 uppercase tracking-wider border-b border-gray-700 pb-3 ${GOLD_COLOR_CLASS}`}>{t('nav.services') || "Nossos Serviços"}</h4>
             <ul className="space-y-3">
-              {serviceLinks.map(({ path, key }) => (
-                 <li key={key} className="flex items-center">
+              {serviceLinks.map(({ path, key, reactKey }) => (
+                 <li key={reactKey} className="flex items-center">
                    <ChevronRight className={`w-4 h-4 mr-2 ${GOLD_COLOR_CLASS} flex-shrink-0`} />
                    <Link
-                    // NOTA: Mudei a key para 'key' em vez de 'path' para garantir chaves únicas
                     to={path} 
                     className={`${TEXT_SECONDARY_CLASS} ${GOLD_HOVER_CLASS} text-base`}
                   >
@@ -182,17 +182,28 @@ const Footer: React.FC = () => {
         {/* Legal e Copyright (Melhorado o layout) */}
         <div className="border-t border-gray-800 pt-8 text-sm flex flex-col md:flex-row justify-between items-center">
           
-          {/* Links Legais - CORREÇÃO PRINCIPAL APLICADA AQUI */}
+          {/* Links Legais - 🚨 RENDERIZAÇÃO CORRIGIDA PARA LINKS EXTERNOS */}
           <div className="flex flex-wrap justify-center md:justify-start space-x-4 md:space-x-6 order-2 md:order-1 mt-4 md:mt-0">
             {legalLinks.map((link) => (
-               <Link 
-                  key={link.path} 
-                  to={link.path} 
-                  className={`underline ${TEXT_SECONDARY_CLASS} ${GOLD_HOVER_CLASS} transition-colors`}
+               link.isExternal ? (
+                <a 
+                    key={link.key} 
+                    href={link.path} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className={`underline ${TEXT_SECONDARY_CLASS} ${GOLD_HOVER_CLASS} transition-colors`}
                 >
-                  {/* A FUNÇÃO 't' É APLICADA AQUI NA CHAVE CORRETA */}
-                  {t(link.key)}
+                    {t(link.key)}
+                </a>
+               ) : (
+                <Link 
+                    key={link.path} 
+                    to={link.path} 
+                    className={`underline ${TEXT_SECONDARY_CLASS} ${GOLD_HOVER_CLASS} transition-colors`}
+                >
+                    {t(link.key)}
                 </Link>
+               )
             ))}
           </div>
 

@@ -18,6 +18,8 @@ import About from './pages/About';
 import Blog from './pages/Blog';
 import Contact from './pages/Contact';
 import Reserve from './pages/Reserve';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsAndConditions from './pages/TermsAndConditions';
 
 // Componentes da Frota e Serviços
 import VehicleDetail from './pages/VehicleDetail'; 
@@ -67,6 +69,8 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
                 
                 {/* Rota para o perfil do utilizador (necessária para o Header) */}
                 <Route path="/profile" element={<div>Página do Perfil (A ser criada)</div>} />
