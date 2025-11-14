@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Importa useLanguage para aceder às traduções e LanguageProvider
 import { LanguageProvider, useLanguage } from './hooks/useLanguage'; 
-import { translations } from './data/translations'; // Atualizado para './data/translations' 
+import { translations } from './data/translations'; 
 import { AuthProvider } from './hooks/useAuth'; 
 
 // Componente para forçar o scroll para o topo em cada navegação
@@ -45,7 +45,7 @@ const AppContent = () => {
     // Devemos usar o useLanguage aqui, pois estamos dentro do LanguageProvider
     const { lang } = useLanguage();
     
-    // **CORREÇÃO:** Garante que há um idioma efetivo ('pt' como fallback)
+    // **CORREÇÃO DE FALLBACK:** Garante que há um idioma efetivo ('pt' como fallback)
     const effectiveLang = lang || 'pt';
     
     // O 't' é carregado com o idioma efetivo.
@@ -80,7 +80,6 @@ const AppContent = () => {
         setShowCookieBanner(false);
         setHasFullConsent(true);
         console.log('Todos os cookies aceites. Consentimento total concedido.');
-        // Se a inicialização do Analytics exigir um reload, coloque-o aqui.
     };
 
     const handleRejectNonEssential = () => {
@@ -91,9 +90,20 @@ const AppContent = () => {
     };
 
     const handleManagePreferences = () => {
-        // Por simplificação, direcionamos para a rejeição ou abriria um modal de gestão.
-        console.log('Abrir Modal de Gestão de Cookies ou redirecionar para política.');
-        handleRejectNonEssential(); 
+        // **CORREÇÃO DE GESTÃO:** Remove o consentimento para que o banner reapareça imediatamente.
+        
+        // 1. Remove o registo de consentimento no LocalStorage
+        localStorage.removeItem(COOKIE_CONSENT_KEY);
+        
+        // 2. Força o banner a aparecer no ecrã (e o useEffect na próxima vez que a página recarregar vai detetar isto)
+        setShowCookieBanner(true); 
+        setHasFullConsent(false);
+        
+        console.log('Consentimento limpo. Banner de gestão reexibido.');
+        
+        // 💡 Opcional: Se quiser redirecionar para a página de cookies para gestão avançada, 
+        // em vez de reabrir o banner, comente as duas linhas acima e use a linha abaixo:
+        // window.location.href = '/cookies'; 
     };
 
     // Usamos o optional chaining para o t?.cookies?.banner
