@@ -124,6 +124,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
             ]);
             setFetchedServices(servicesData);
             setFetchedVehicles(vehiclesData);
+            
+            // Definir o primeiro serviço como padrão se não houver um inicial
+            if (servicesData.length > 0 && !initialData?.service) {
+                setFormData(prev => ({ 
+                    ...prev, 
+                    service: servicesData[0].id
+                }));
+            }
         } catch (err) {
             console.error("Erro ao carregar dados da API:", err);
             setError("Não foi possível carregar a lista de serviços ou veículos.");
@@ -132,7 +140,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
         }
     };
     loadData();
-  }, [showServiceAndVehicle]); 
+  }, [showServiceAndVehicle, initialData?.service]); 
 
   // =========================================================================
   // USEEFFECT 2: GOOGLE MAPS AUTOCOMPLETE
@@ -260,6 +268,20 @@ const BookingForm: React.FC<BookingFormProps> = ({
         return;
     }
     
+    // 4. Nova Validação: Serviço e/ou Veículo Requeridos
+    if (showServiceAndVehicle) {
+      if (!formData.service) {
+        toast.error(t('booking.validation.serviceRequired') || "Por favor, selecione um tipo de serviço.");
+        return;
+      }
+      /* Se quiser validar veículo, descomente:
+      if (!formData.vehicleId) {
+        toast.error(t('booking.validation.vehicleRequired') || "Por favor, selecione um veículo.");
+        return;
+      }
+      */
+    }
+
     // --- FIM DAS VALIDAÇÕES ---
 
     const finalData: TripDetails = {
@@ -318,7 +340,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
       <>
         {toasterComponent}
         <div className="bg-gray-900/95 backdrop-blur-lg rounded-2xl lg:rounded-3xl shadow-2xl p-4 lg:p-8 max-w-md mx-auto border border-gray-700/50">
-          {/* ... Resto do JSX Compacto (mantido) ... */}
           {/* Tab Navigation (Mantido) */}
           <div className="flex mb-4 lg:mb-8 bg-gray-800 rounded-xl lg:rounded-2xl p-1">
             <button
@@ -346,7 +367,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-6">
-            {/* From Address (Pickup) - COM AUTOCOMPLETE E GEOLOCALIZAÇÃO */}
+            {/* From Address (Pickup) - COM AUTOCOMPLETE E GEOLOCALIZAÇÃO - 🚨 CORRIGIDO */}
             <div className="relative">
               <div className="flex items-center bg-gray-800/80 rounded-xl lg:rounded-2xl p-3 lg:p-5 hover:bg-gray-700/80 transition-all border border-gray-600/50">
                 <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-600 rounded-full flex items-center justify-center mr-3 lg:mr-4 shadow-sm">
@@ -358,7 +379,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                     type="text"
                     name="pickupAddress"
                     ref={pickupRef} 
-                    defaultValue={formData.pickupAddress} 
+                    value={formData.pickupAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
                     onChange={handleChange}
                     placeholder={t('booking.addressPlaceholder')}
                     className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm lg:text-lg"
@@ -379,7 +400,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
             {/* To Address or Duration */}
             {activeTab === 'one-way' ? (
-              /* To Address (Dropoff) - COM AUTOCOMPLETE */
+              /* To Address (Dropoff) - COM AUTOCOMPLETE - 🚨 CORRIGIDO */
               <div className="relative">
                 <div className="flex items-center bg-gray-800/80 rounded-xl lg:rounded-2xl p-3 lg:p-5 hover:bg-gray-700/80 transition-all border border-gray-600/50">
                   <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-600 rounded-full flex items-center justify-center mr-3 lg:mr-4 shadow-sm">
@@ -391,7 +412,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                       type="text"
                       name="dropoffAddress"
                       ref={dropoffRef} 
-                      defaultValue={formData.dropoffAddress}
+                      value={formData.dropoffAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
                       onChange={handleChange}
                       placeholder={t('booking.addressPlaceholder')}
                       className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm lg:text-lg"
@@ -441,7 +462,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
               />
             </div>
 
-            {/* Time Picker (Usando input type="time" simplificado) - CORRIGIDO */}
+            {/* Time Picker (Usando input type="time" simplificado) - Mantido */}
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 mt-2 ml-1" />
               <input
@@ -491,14 +512,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
         {/* 🚨 BLOC 1: Endereços (Visível APENAS no Passo 1) */}
         {showAddresses && (
           <>
-              {/* Pickup Address - COM AUTOCOMPLETE E GEOLOCALIZAÇÃO */}
+              {/* Pickup Address - COM AUTOCOMPLETE E GEOLOCALIZAÇÃO - 🚨 CORRIGIDO */}
               <div className="relative">
                 <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
                 <input
                   type="text"
                   name="pickupAddress"
                   ref={pickupRef} 
-                  defaultValue={formData.pickupAddress}
+                  value={formData.pickupAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
                   onChange={handleChange}
                   placeholder={`${t('booking.pickupAddress')} (Madeira)`}
                   className={`${inputClasses} pl-12 pr-12`} // Ajuste para o botão
@@ -516,14 +537,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 </button>
               </div>
 
-              {/* Dropoff Address - COM AUTOCOMPLETE (Mantido) */}
+              {/* Dropoff Address - COM AUTOCOMPLETE (Mantido) - 🚨 CORRIGIDO */}
               <div className="relative">
                 <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
                 <input
                   type="text"
                   name="dropoffAddress"
                   ref={dropoffRef} 
-                  defaultValue={formData.dropoffAddress}
+                  value={formData.dropoffAddress} // 🚨 CORREÇÃO: Usar 'value' em vez de 'defaultValue'
                   onChange={handleChange}
                   placeholder={`${t('booking.dropoffAddress')} (Madeira)`}
                   className={`${inputClasses} pl-12`}

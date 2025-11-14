@@ -1069,6 +1069,7 @@ export const translations = {
       name: 'Full Name', // Corrigido
       email: 'Email', // Corrigido
       form: {
+        fullName: 'Full Name',
         phone: 'Phone',
         message: 'Message',
         send: 'Send Message',
