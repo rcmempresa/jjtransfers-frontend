@@ -1,9 +1,47 @@
 export const translations = {
   pt: {
     // =======================================================
-    // NOVAS TRADUÇÕES (INTEGRADAS)
+    // NOVO: TRADUÇÕES DA SECÇÃO COOKIES
     // =======================================================
-    
+    cookies: {
+      banner: {
+        title: 'Utilizamos Cookies',
+        text: 'Usamos cookies para personalizar o conteúdo, fornecer funcionalidades de redes sociais e analisar o nosso tráfego. Ao continuar a navegar, aceita a utilização de cookies.',
+        accept: 'Aceitar Todos',
+        manage: 'Gerir Preferências',
+        reject: 'Rejeitar Não Essenciais',
+        learnMore: 'Saber Mais',
+      },
+      details: {
+        title: 'Política de Cookies',
+        lastUpdated: 'Última atualização: 15 de Novembro de 2025',
+        intro: 'Esta Política de Cookies explica o que são cookies e como os utilizamos na J&J Bespoke Travel. Deve ler esta política para entender o que são cookies, como os usamos, os tipos de cookies que utilizamos, ou seja, as informações que recolhemos usando cookies e como essa informação é utilizada e como controlar as suas preferências de cookies.',
+        whatAre: {
+          title: 'O Que São Cookies?',
+          content: 'Cookies são pequenos ficheiros de texto que são armazenados no seu computador ou dispositivo móvel quando visita o nosso website. Eles são amplamente utilizados para fazer com que os websites funcionem de forma mais eficiente, bem como para fornecer informações aos proprietários do site.',
+        },
+        typesTitle: 'Tipos de Cookies que Utilizamos',
+        type: {
+          essential: {
+            title: 'Essenciais (Obrigatórios)',
+            description: 'Estes cookies são estritamente necessários para lhe fornecer os serviços disponíveis através do nosso website e para utilizar algumas das suas funcionalidades, como o acesso a áreas seguras e a funcionalidade de reserva.',
+          },
+          performance: {
+            title: 'Desempenho e Funcionalidade',
+            description: 'Estes cookies são utilizados para melhorar o desempenho e a funcionalidade do nosso website, mas não são essenciais para a sua utilização. No entanto, sem estes cookies, certas funcionalidades podem ficar indisponíveis.',
+          },
+          analytics: {
+            title: 'Análise e Personalização',
+            description: 'Estes cookies recolhem informações que são usadas de forma agregada para nos ajudar a entender como o nosso website está a ser utilizado ou quão eficazes são as nossas campanhas de marketing, ou para nos ajudar a personalizar o website para si.',
+          },
+        },
+        controlTitle: 'Controlo de Cookies',
+        controlContent: 'Pode alterar as suas preferências de cookies a qualquer momento, clicando no botão "Gerir Preferências" na nossa barra de cookies. Além disso, a maioria dos navegadores permite-lhe controlar os cookies através das suas configurações de preferência. No entanto, se limitar a capacidade dos websites de definir cookies, poderá piorar a sua experiência geral de utilizador.',
+      },
+    },
+    // =======================================================
+    // FIM: TRADUÇÕES DA SECÇÃO COOKIES
+    // =======================================================
     // 🚨 NOVAS CHAVES DA POLÍTICA DE PRIVACIDADE
     privacy: {
       title: 'Política de Privacidade',
@@ -604,9 +642,47 @@ export const translations = {
   },
   en: {
     // =======================================================
-    // NOVAS TRADUÇÕES (INTEGRADAS)
+    // NOVO: TRADUÇÕES DA SECÇÃO COOKIES
     // =======================================================
-    
+    cookies: {
+      banner: {
+        title: 'We Use Cookies',
+        text: 'We use cookies to personalize content, provide social media features, and analyze our traffic. By continuing to browse, you accept the use of cookies.',
+        accept: 'Accept All',
+        manage: 'Manage Preferences',
+        reject: 'Reject Non-Essential',
+        learnMore: 'Learn More',
+      },
+      details: {
+        title: 'Cookie Policy',
+        lastUpdated: 'Last updated: November 15, 2025',
+        intro: 'This Cookie Policy explains what cookies are and how we use them at J&J Bespoke Travel. You should read this policy to understand what cookies are, how we use them, the types of cookies we use, meaning the information we collect using cookies, and how that information is used, and how to control your cookie preferences.',
+        whatAre: {
+          title: 'What Are Cookies?',
+          content: 'Cookies are small text files that are stored on your computer or mobile device when you visit our website. They are widely used to make websites work more efficiently, as well as to provide information to the site owners.',
+        },
+        typesTitle: 'Types of Cookies We Use',
+        type: {
+          essential: {
+            title: 'Essential (Required)',
+            description: 'These cookies are strictly necessary to provide you with the services available through our website and to use some of its features, such as accessing secure areas and the booking functionality.',
+          },
+          performance: {
+            title: 'Performance and Functionality',
+            description: 'These cookies are used to enhance the performance and functionality of our website but are non-essential to their use. However, without these cookies, certain functionality may become unavailable.',
+          },
+          analytics: {
+            title: 'Analytics and Personalization',
+            description: 'These cookies collect information that is used either in aggregate form to help us understand how our website is being used or how effective our marketing campaigns are, or to help us customize the website for you.',
+          },
+        },
+        controlTitle: 'Cookie Control',
+        controlContent: 'You can change your cookie preferences at any time by clicking the "Manage Preferences" button on our cookie banner. In addition, most browsers allow you to control cookies through their preference settings. However, if you limit the ability of websites to set cookies, you may worsen your overall user experience.',
+      },
+    },
+    // =======================================================
+    // FIM: TRADUÇÕES DA SECÇÃO COOKIES
+    // =======================================================
     // 🚨 NOVAS CHAVES DA POLÍTICA DE PRIVACIDADE
     privacy: {
       title: 'Privacy Policy',
@@ -704,10 +780,6 @@ export const translations = {
         slide3: {
           title: 'Travel in style and comfort',
           subtitle: 'Our luxury fleet is at your disposal 24/7'
-        },
-        slide4: {
-          title: 'Premium experience guaranteed',
-          subtitle: 'Professional drivers and impeccable vehicles'
         }
       }
     },
