@@ -97,7 +97,7 @@ const VIDEO_EMBED_URL = "https://www.youtube.com/embed/AOTGBDcDdEQ?autoplay=1&mu
 const goldColor = 'text-amber-400';
 const cardBg = 'bg-black/80 border border-gray-800'; 
 
-// HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (Se estiver a usar)
+// HOOK PARA DETEÇÃO DE ECRÃ MÓVEL (Mantido)
 const useIsMobile = (breakpoint = 768) => {
     const mediaQuery = `(max-width: ${breakpoint - 1}px)`;
     
@@ -197,10 +197,10 @@ const Booking: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   
   // ----------------------------------------------------------------------
-  // LÓGICA DE BUSCA DA API (Mantida)
+  // LÓGICA DE BUSCA DA API 
   // ----------------------------------------------------------------------
   useEffect(() => {
-    // ... lógica de fetch data (mantida) ...
+    // --- FUNÇÃO DE FETCH COMPLETA ---
     const fetchBookingData = async () => {
         setIsLoading(true);
         setApiError(null);
@@ -306,7 +306,7 @@ const Booking: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, navigate, location.search]); 
 
-  // ESTRUTURA DE 6 PASSOS (Mantida)
+  // ESTRUTURA DE 6 PASSOS
   const steps: BookingStep[] = [
     { step: 1, title: t('booking.tripAddresses') || '1. Localização', completed: currentStep > 1 },
     { step: 2, title: t('booking.selectService') || '2. Serviço', completed: currentStep > 2 },
@@ -327,7 +327,7 @@ const Booking: React.FC = () => {
   }, [selectedService]);
 
   const validateCurrentSlotAvailability = useCallback((): boolean => {
-    // ... lógica de validação (mantida) ...
+    // ... lógica de validação ...
     if (!selectedVehicle || !getSelectedDateTime) {
         setSlotValidationError(null); 
         return true; 
@@ -383,7 +383,7 @@ const Booking: React.FC = () => {
     setShowVehicleWarning(false);
   }, []);
 
-  // 🚨 CRÍTICO: Este handler deve ser estável (dependências vazias)
+  // Handler para o ClientForm (Corrigido/Estável)
   const handleClientFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
       setClientForm(prev => ({ ...prev, [name]: value }));
@@ -435,7 +435,7 @@ const Booking: React.FC = () => {
     setCurrentStep(5); 
   };
 
-  // Memoizar o handler de pagamento para evitar instabilidade no componente filho
+  // Handler de submissão de Pagamento (Estável)
   const handlePaymentSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -532,7 +532,6 @@ const Booking: React.FC = () => {
         setIsSubmittingPayment(false);
     }
   }, [
-      // Lista de dependências que o handler usa:
       selectedVehicle, tripDetails, selectedService, clientForm, t, calculatedPrice,
       isHourlyService, validateCurrentSlotAvailability, reservedSlots, 
       setIsSubmittingPayment, setPaymentError, setCurrentStep, setReservationResponse
@@ -591,7 +590,7 @@ const Booking: React.FC = () => {
     <div className="relative min-h-screen">
         <Toaster position="top-right" /> 
         
-        {/* OTIMIZAÇÃO: CAMADA DE VÍDEO DE BACKGROUND (SÓ CARREGA NO DESKTOP) */}
+        {/* OTIMIZAÇÃO: CAMADA DE VÍDEO DE BACKGROUND */}
         {!isMobile && (
             <div className="fixed inset-0 overflow-hidden z-[-1]">
                 <iframe
@@ -815,11 +814,10 @@ const Booking: React.FC = () => {
                           </div>
                       )}
                       
-                      {/* 🚨 DESESTRUTURAR AQUI para passar props estáveis */}
+                      {/* 🚨 CHAVE DA CORREÇÃO: Passar as strings individuais */}
                       <ClientDetailsStep
                           calculatedPrice={calculatedPrice}
                           
-                          // A CHAVE DA CORREÇÃO: Passar as strings individuais
                           passenger_name={clientForm.passenger_name}
                           passenger_email={clientForm.passenger_email}
                           passenger_phone={clientForm.passenger_phone}
