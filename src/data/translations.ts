@@ -1,7 +1,57 @@
 export const translations = {
   pt: {
     // =======================================================
-    // NOVAS TRADUÇÕES
+    // NOVAS TRADUÇÕES (INTEGRADAS)
+    // =======================================================
+    
+    // 🚨 NOVAS CHAVES DA POLÍTICA DE PRIVACIDADE
+    privacy: {
+      title: 'Política de Privacidade',
+      lastUpdated: 'Última atualização: 15 de Novembro de 2025',
+      intro: {
+        title: 'Introdução',
+        content: 'A J&J Bespoke Travel está empenhada em proteger a privacidade dos seus utilizadores. Esta política descreve como recolhemos, usamos e partilhamos a sua informação pessoal, em conformidade com o Regulamento Geral de Proteção de Dados (RGPD).'
+      },
+      data: {
+        title: 'Dados Pessoais Recolhidos',
+        explanation: 'Recolhemos dados que nos fornece diretamente, tais como:',
+        name: 'Nome, contacto telefónico e e-mail (essenciais para a reserva).',
+        trip: 'Detalhes da viagem (endereços, datas, pedidos especiais).',
+        marketing: 'Preferências de marketing (se aplicável).'
+      },
+      use: {
+        title: 'Como Usamos os Seus Dados',
+        a: '• Para processar e gerir a sua reserva de transporte.',
+        b: '• Para comunicar consigo sobre a sua viagem, incluindo atualizações e confirmações.',
+        c: '• Para fins de faturação e gestão contabilística.'
+      },
+      contact: {
+        title: 'Os Seus Direitos e Contacto',
+        content: 'Tem o direito de aceder, retificar ou apagar os seus dados pessoais. Para exercer estes direitos ou colocar questões, contacte-nos através do e-mail:'
+      }
+    },
+
+    // 🚨 NOVAS CHAVES DOS TERMOS E CONDIÇÕES
+    terms: {
+      title: 'Termos e Condições',
+      governing: 'Regem a utilização dos serviços de transporte da J&J Bespoke Travel.',
+      reservations: {
+        title: 'Reservas e Pagamento',
+        content: 'Todas as reservas estão sujeitas à confirmação de disponibilidade da frota. O pagamento integral ou parcial, conforme acordado, é obrigatório para garantir a reserva.'
+      },
+      cancellation: {
+        title: 'Política de Cancelamento',
+        a: 'Cancelamentos efetuados com mais de 48 horas de antecedência: reembolso total.',
+        b: 'Cancelamentos efetuados com menos de 24 horas de antecedência: retenção de 50% do valor total.',
+        c: 'No-show ou cancelamento na hora: valor total da reserva será cobrado.'
+      },
+      conduct: {
+        title: 'Conduta do Passageiro',
+        content: 'Os passageiros são responsáveis por danos causados aos veículos. É estritamente proibido fumar ou consumir drogas nos veículos. O motorista reserva-se o direito de recusar o serviço a qualquer pessoa que esteja embriagada ou que represente um risco à segurança.'
+      }
+    },
+    // =======================================================
+    // RESTANTE OBJETO (pt)
     // =======================================================
     nav: {
       home: 'Início',
@@ -162,24 +212,6 @@ export const translations = {
       geolocError: 'O seu navegador não suporta geolocalização ou a API do Google Maps não está carregada.',
       geolocConvertError: 'Não foi possível converter a localização em endereço.',
       geolocSet: 'Localização definida para: ',
-      
-      // CHAVES ADICIONADAS
-      tripAddresses: 'Localização', 
-      tripDateTime: 'Data & Hora',
-      vehicleSelected: 'Veículo Escolhido:',
-      route: 'Rota:',
-      noVehicleTip: 'Nenhum veículo disponível nas datas indicadas. Por favor, volte atrás e tente outro serviço.',
-      tryAnotherService: 'Tentar Outro Serviço',
-      bookerTitle: 'Detalhes do Passageiro',
-      namePlaceholder: 'O seu Nome Completo',
-      emailPlaceholder: 'O seu Email',
-      phonePlaceholder: 'O seu Telefone',
-      specialRequestsLabel: 'Pedidos Especiais (Opcional)',
-      choosePaymentMethod: 'Escolha o Método de Pagamento',
-      confirmAndPay: 'Confirmar e Pagar',
-      paymentMessageMBWay: 'A sua reserva está pendente. Por favor, confirme o pagamento no seu telemóvel através do MB Way para a referência: {{reference}} no valor de {{value}}.',
-      paymentMessageMB: 'A sua reserva está pendente. Use as seguintes referências para pagar num Multibanco ou Homebanking: Entidade: {{entity}}, Referência: {{reference}}, Valor: {{value}}.',
-      paymentProcessing: 'A processar pagamento...',
       
       // CHAVE NOVA DE ERRO
       geoBrowserError: 'Ocorreu um erro na geolocalização ou a API do Google Maps não está disponível no seu navegador.',
@@ -572,7 +604,58 @@ export const translations = {
   },
   en: {
     // =======================================================
-    // NOVAS TRADUÇÕES
+    // NOVAS TRADUÇÕES (INTEGRADAS)
+    // =======================================================
+    
+    // 🚨 NOVAS CHAVES DA POLÍTICA DE PRIVACIDADE
+    privacy: {
+      title: 'Privacy Policy',
+      lastUpdated: 'Last updated: November 15, 2025',
+      intro: {
+        title: 'Introduction',
+        content: 'J&J Bespoke Travel is committed to protecting the privacy of its users. This policy describes how we collect, use, and share your personal information, in compliance with the General Data Protection Regulation (GDPR).'
+      },
+      data: {
+        title: 'Personal Data Collected',
+        explanation: 'We collect data you provide directly to us, such as:',
+        name: 'Name, phone number, and email (essential for booking).',
+        trip: 'Trip details (addresses, dates, special requests).',
+        marketing: 'Marketing preferences (if applicable).'
+      },
+      use: {
+        title: 'How We Use Your Data',
+        a: '• To process and manage your transportation booking.',
+        b: '• To communicate with you about your trip, including updates and confirmations.',
+        c: '• For billing and accounting management purposes.'
+      },
+      contact: {
+        title: 'Your Rights and Contact',
+        content: 'You have the right to access, rectify, or erase your personal data. To exercise these rights or ask questions, contact us via email:'
+      }
+    },
+    
+    // 🚨 NOVAS CHAVES DOS TERMOS E CONDIÇÕES
+    terms: {
+      title: 'Terms and Conditions',
+      governing: 'Govern the use of J&J Bespoke Travel transportation services.',
+      reservations: {
+        title: 'Reservations and Payment',
+        content: 'All reservations are subject to fleet availability confirmation. Full or partial payment, as agreed, is mandatory to guarantee the booking.'
+      },
+      cancellation: {
+        title: 'Cancellation Policy',
+        a: 'Cancellations made more than 48 hours in advance: full refund.',
+        b: 'Cancellations made less than 24 hours in advance: retention of 50% of the total amount.',
+        c: 'No-show or on-the-spot cancellation: the total value of the reservation will be charged.'
+      },
+      conduct: {
+        title: 'Passenger Conduct',
+        content: 'Passengers are responsible for damages caused to the vehicles. Smoking or drug consumption is strictly prohibited in the vehicles. The driver reserves the right to refuse service to any person who is intoxicated or poses a safety risk.'
+      }
+    },
+
+    // =======================================================
+    // RESTANTE OBJETO (en)
     // =======================================================
     nav: {
       home: 'Home',
@@ -663,7 +746,6 @@ export const translations = {
     phone: 'Phone',
     specialRequests: 'Special Requests',
     paymentMethod: 'Payment Method',
-    continueToPayment: 'Continue to Payment',
     time: 'Time',
     returnDate: 'Return Date',
     returnTime: 'Return Time',
@@ -1048,8 +1130,8 @@ export const translations = {
     // =======================================================
     newsPage: {
         title: 'News, Events, and Luxury Tips in Madeira',
-        subtitle: 'Stay up-to-date with our news and exclusive travel guides.', // <--- ADICIONADA
-        newsBreadcrumb: 'News', // <--- ADICIONADA
+        subtitle: 'Stay up-to-date with our news and exclusive travel guides.',
+        newsBreadcrumb: 'News',
         filterTitle: 'Filter by Topic',
         allCategories: 'All Categories',
         contactWidgetTitle: 'Book Your Transfer',
@@ -1069,7 +1151,6 @@ export const translations = {
       name: 'Full Name', // Corrigido
       email: 'Email', // Corrigido
       form: {
-        fullName: 'Full Name',
         phone: 'Phone',
         message: 'Message',
         send: 'Send Message',
