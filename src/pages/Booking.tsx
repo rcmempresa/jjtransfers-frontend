@@ -11,9 +11,10 @@ import {
 // Componentes (assumindo a sua estrutura de ficheiros)
 import BookingForm from '../components/BookingForm'; 
 import VehicleCard from '../components/VehicleCard';
-import ClientDetailsStep from '../components/ClientDetailsStep'; // 🚨 Importação do novo componente
+import ClientDetailsStep from '../components/ClientDetailsStep'; // 🚨 IMPORTAÇÃO DO COMPONENTE CORRIGIDO
 import { useLanguage } from '../hooks/useLanguage';
-import ElectricBorder from '../components/ElectricBorder'; // Se usa o seu ElectricBorder
+import ElectricBorder from '../components/ElectricBorder'; 
+
 // ----------------------------------------------------------------------
 // TIPAGEM DINÂMICA (Manter a que usa no seu projeto)
 // ----------------------------------------------------------------------
@@ -199,7 +200,7 @@ const Booking: React.FC = () => {
   // LÓGICA DE BUSCA DA API (Mantida)
   // ----------------------------------------------------------------------
   useEffect(() => {
-    // ... lógica de fetch data ...
+    // ... lógica de fetch data (mantida) ...
     const fetchBookingData = async () => {
         setIsLoading(true);
         setApiError(null);
@@ -368,10 +369,9 @@ const Booking: React.FC = () => {
 
 
   // ----------------------------------------------------------------------
-  // HANDLERS (COM CORREÇÃO DE STABILITY/FOCUS)
+  // HANDLERS (Com o uso crucial de useCallback para estabilidade)
   // ----------------------------------------------------------------------
 
-  // Handlers simples (envolvidos em useCallback)
   const handleServiceSelection = useCallback((service: ServiceType) => {
       setSelectedService(service);
       setCurrentStep(3); 
@@ -383,12 +383,12 @@ const Booking: React.FC = () => {
     setShowVehicleWarning(false);
   }, []);
 
-  // 🚨 CORREÇÃO: Usar useCallback para estabilizar a função. 
-  // Isso impede que o ClientDetailsStep (memoizado) se re-renderize em cada tecla.
+  // 🚨 CORREÇÃO CRÍTICA: Este handler é a chave para o React.memo funcionar corretamente
   const handleClientFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
+      // setClientForm é estável
       setClientForm(prev => ({ ...prev, [name]: value }));
-  }, []); // Dependências vazias = função estável
+  }, []); // Dependências vazias = Função estável
 
   // Handler de submissão de Endereço e Data/Hora (mantidos)
   const handleAddressSubmit = (details: TripDetails) => {
@@ -440,7 +440,11 @@ const Booking: React.FC = () => {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // ... Lógica de validação e submissão da API (mantida) ...
+    // O código de submissão da API depende das variáveis de estado (selectedVehicle, tripDetails, clientForm, etc.)
+    // Como esta função é chamada apenas uma vez no Passo 5, não precisamos de a memoizar,
+    // mas se o fizermos, as dependências devem incluir todas as vars que ela usa (o que a tornaria instável para o memo do filho).
+    // O que importa é que o handler PASSADO para o filho (handleClientFormChange) seja estável.
+    
     if (!selectedVehicle || !tripDetails || !selectedService || !tripDetails.date || !tripDetails.time || !clientForm.passenger_email || !clientForm.passenger_name || !clientForm.passenger_phone) {
         toast.error(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
         setPaymentError(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
@@ -812,17 +816,16 @@ const Booking: React.FC = () => {
                           </div>
                       )}
 
-                      {/* 🚨 Integração do ClienteDetailsStep */}
+                      {/* 🚨 Integração do ClienteDetailsStep com props estáveis/mínimas */}
                       <ClientDetailsStep
                           calculatedPrice={calculatedPrice}
                           clientForm={clientForm}
-                          tripDetails={tripDetails}
-                          selectedVehicle={selectedVehicle}
-                          selectedService={selectedService}
                           paymentError={paymentError}
                           isSubmittingPayment={isSubmittingPayment}
                           handleClientFormChange={handleClientFormChange}
                           handlePaymentSubmit={handlePaymentSubmit}
+                          // REMOVIDAS: tripDetails, selectedVehicle, selectedService 
+                          // para evitar que re-renderizações acidentais no pai quebrem o foco.
                       />
                       
                 </BorderWrapper>
@@ -874,7 +877,7 @@ const Booking: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="h-20"></div> 
+        <div className="h-20"></div> {/* Espaço para scroll */}
     </div>
   );
 };
