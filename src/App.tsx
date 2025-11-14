@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { LanguageProvider, useLanguage } from './hooks/useLanguage'; // Importa useLanguage para aceder às traduções
-import { translations } from './translations'; // Importa o objeto de traduções
-import { AuthProvider } from './hooks/useAuth'; // Importação do AuthProvider
+// Importa useLanguage para aceder às traduções e LanguageProvider
+import { LanguageProvider, useLanguage } from './hooks/useLanguage'; 
+import { translations } from './data/translations'; 
+import { AuthProvider } from './hooks/useAuth'; 
 
 // Componente para forçar o scroll para o topo em cada navegação
 import ScrollToTop from './components/ScrollToTop';
 
-// Componente de Cookies (Vamos assumir que está em components/CookieBanner)
+// Componente de Cookies
 import CookieBanner from './components/CookieBanner';
 
 // Componentes do Layout
@@ -25,6 +26,7 @@ import Contact from './pages/Contact';
 import Reserve from './pages/Reserve';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
+import CookiePolicyPage from './pages/CookiePolicyPage'; 
 
 // Componentes da Frota e Serviços
 import VehicleDetail from './pages/VehicleDetail'; 
@@ -35,22 +37,21 @@ import ServiceDetail from './pages/ServiceDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
-// Chave do LocalStorage
+// Chave de persistência para o LocalStorage
 const COOKIE_CONSENT_KEY = 'cookie_consent_accepted';
 
-// --- Componente principal com a lógica do Banner de Cookies ---
+// --- Componente que contém o Router e a Lógica de Cookies ---
 const AppContent = () => {
-    // Aceder ao idioma atual para obter as traduções
+    // Devemos usar o useLanguage aqui, pois estamos dentro do LanguageProvider
     const { lang } = useLanguage();
-    const t = translations[lang];
+    // O t deve ser verificado, pois as traduções podem não estar carregadas imediatamente
+    const t = translations[lang] || {}; 
 
     // 1. Estados dos Cookies
     const [showCookieBanner, setShowCookieBanner] = useState(false);
+    // Este estado indica se podemos carregar scripts de terceiros (Analytics, etc.)
     const [hasFullConsent, setHasFullConsent] = useState(false);
     
-    // Estado para controlar a visibilidade do modal de gestão, se for necessário
-    // const [showCookieModal, setShowCookieModal] = useState(false); 
-
     // 2. Efeito para verificar o consentimento no carregamento
     useEffect(() => {
         const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
@@ -58,24 +59,24 @@ const AppContent = () => {
         if (consent === 'accepted') {
             setShowCookieBanner(false);
             setHasFullConsent(true);
-            // 💡 Aqui: Inicializar Google Analytics, Hotjar, etc.
+            // 💡 Se necessário, aqui é o local para inicializar serviços de terceiros
         } else if (consent === 'rejected') {
              setShowCookieBanner(false);
              setHasFullConsent(false);
-             // 💡 Aqui: Não carregar nada ou só carregar scripts essenciais
+             // 💡 Se necessário, aqui é o local para carregar apenas scripts essenciais
         } else {
-            // Se for a primeira visita, mostrar o banner
+            // Se não houver registo, mostra o banner
             setShowCookieBanner(true);
         }
     }, []);
 
-    // 3. Funções de Manipulação
+    // 3. Funções de Manipulação do Banner
     const handleAcceptAll = () => {
         localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
         setShowCookieBanner(false);
         setHasFullConsent(true);
-        console.log('Todos os cookies aceites. Scripts de terceiros ativados.');
-        // Pode ser necessário um window.location.reload() para scripts que precisam de ser injetados no início.
+        console.log('Todos os cookies aceites. Consentimento total concedido.');
+        // Se a inicialização do Analytics exigir um reload, coloque-o aqui.
     };
 
     const handleRejectNonEssential = () => {
@@ -86,13 +87,16 @@ const AppContent = () => {
     };
 
     const handleManagePreferences = () => {
-        // Por agora, direcionamos para a rejeição, mas idealmente abriria um modal.
-        // setShowCookieModal(true); 
-        console.log('Abrir Modal de Gestão de Cookies.');
+        // Por simplificação, direcionamos para a rejeição ou abriria um modal de gestão.
+        console.log('Abrir Modal de Gestão de Cookies ou redirecionar para política.');
         handleRejectNonEssential(); 
     };
 
+    // Usamos o optional chaining para o t?.cookies?.banner
+    const cookieBannerTranslations = t?.cookies?.banner;
+
     return (
+        // O AuthProvider deve envolver as rotas para que as páginas usem o useAuth()
         <AuthProvider>
             <Router>
                 <ScrollToTop /> 
@@ -114,7 +118,6 @@ const AppContent = () => {
                             <Route path="/news/:articleId" element={<News />} /> 
                             <Route path="/reserve" element={<Reserve />} /> 
                             
-
                             {/* ROTA DE SERVIÇOS */}
                             <Route path="/services" element={<Services />} /> 
                             <Route path="/services/:serviceId" element={<ServiceDetail />} />
@@ -128,24 +131,25 @@ const AppContent = () => {
                             <Route path="/privacy" element={<PrivacyPolicy />} />
                             <Route path="/terms" element={<TermsAndConditions />} />
                             
+                            {/* ROTA DA POLÍTICA DE COOKIES (Necessário para o link 'Saber Mais') */}
+                            <Route path="/cookies" element={<CookiePolicyPage />} />
+                            
                             {/* Rota para o perfil do utilizador (necessária para o Header) */}
                             <Route path="/profile" element={<div>Página do Perfil (A ser criada)</div>} />
-                            
-                            {/* Rota para a Política de Cookies (necessária para o banner) */}
-                            <Route path="/cookies" element={<div>Página da Política de Cookies (A ser criada)</div>} />
                         </Routes>
                     </main>
                     <Footer />
                 </div>
             </Router>
 
-            {/* Banner de Cookies Renderizado Fora do Fluxo Principal (no final da div) */}
-            {showCookieBanner && t && (
+            {/* Banner de Cookies Renderizado Condicionalmente */}
+            {/* Verifica se o banner deve ser mostrado E se as traduções dos cookies existem */}
+            {showCookieBanner && cookieBannerTranslations && (
                 <CookieBanner 
-                    t={t.cookies.banner} 
+                    t={cookieBannerTranslations} 
                     onAccept={handleAcceptAll}
                     onReject={handleRejectNonEssential}
-                    onManage={handleManagePreferences} // Lida com o 'Gerir Preferências'
+                    onManage={handleManagePreferences}
                 />
             )}
         </AuthProvider>
@@ -153,12 +157,12 @@ const AppContent = () => {
 }
 
 
-// --- Ficheiro App.tsx final ---
+// --- Componente Raiz App ---
 function App() {
     return (
-        // O LanguageProvider deve envolver tudo o que precisa de traduções
+        // O LanguageProvider deve envolver TUDO o que precisa de traduções
         <LanguageProvider>
-            {/* O AppContent contém toda a lógica de cookies, rotas e AuthProvider */}
+            {/* O AppContent encapsula o resto da aplicação, incluindo a lógica de cookies */}
             <AppContent />
         </LanguageProvider>
     );
