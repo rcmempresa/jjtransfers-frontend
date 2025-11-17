@@ -1,27 +1,56 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User, Loader2, ArrowLeft } from 'lucide-react';
-import { useLanguage } from '../hooks/useLanguage';
 
 // ----------------------------------------------------------------------
-// SIMULAÇÃO DO HOOK DE AUTENTICAÇÃO (Adicionar função register)
+// MOCK para useLanguage e useLanguage: RESOLUÇÃO DE ERRO DE COMPILAÇÃO
 // ----------------------------------------------------------------------
-const API_BASE_URL = 'http://localhost:3000/api'; 
+
+// Função de mock para useLanguage, que assume uma tradução simples em Português (t)
+const useLanguage = () => {
+  // Simula a função de tradução (t) para lidar com as chaves do frontend
+  const t = (key) => {
+    const translations = {
+      'register.title': 'Criar Nova Conta',
+      'register.subtitle': 'Junte-se a nós para aceder a reservas exclusivas.',
+      'form.name': 'Nome Completo',
+      'form.email': 'Endereço de Email',
+      'form.password': 'Palavra-Passe (Mín. 8 cár., c/ Maiúsc., Minúsc. e Núm.)',
+      'register.registrationFailed': 'O registo falhou. Tente outro email.',
+      'register.registering': 'A Registar...',
+      'register.button': 'Criar Conta',
+      'register.haveAccount': 'Já tem conta? ',
+      'register.loginHere': 'Entre aqui.',
+    };
+    return translations[key] || key; // Retorna a tradução ou a chave se não for encontrada
+  };
+  return { t, language: 'pt' };
+};
+
+// ----------------------------------------------------------------------
+// SIMULAÇÃO DO HOOK DE AUTENTICAÇÃO
+// ----------------------------------------------------------------------
 
 // Este hook simula as chamadas de API para o registo.
 const useAuth = () => {
+    // Usando type assertions para simplificar, já que estamos num ambiente JS/JSX
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState(null); 
     const navigate = useNavigate();
     const { t } = useLanguage();
 
     // Função de Registo
-    const register = async (name: string, email: string, password: string) => {
+    const register = async (name, email, password) => { // Mantido o 'name', mas veja a nota abaixo!
         setIsLoading(true);
         setError(null);
 
+        // NOTA IMPORTANTE: O seu backend (authController.js) atualmente ignora o campo 'name'.
+        // Ele apenas desestrutura { email, password } de req.body.
+        // A validação Joi (signupSchema) também precisa ser atualizada para aceitar o 'name'.
+
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/auth/signup`, {
+            // Assumindo que VITE_BACKEND_URL aponta para o servidor
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,19 +60,20 @@ const useAuth = () => {
 
             const data = await response.json();
 
-            if (!response.ok || !data.token) {
-                // Tratar erro de registo (e.g., email já em uso)
-                throw new Error(data.message || t('register.registrationFailed') || 'O registo falhou. Tente outro email.');
+            if (!response.ok) {
+                // Tratar erros de registo (400, 403, 409, 500)
+                throw new Error(data.message || t('register.registrationFailed') || 'O registo falhou. Tente novamente.');
             }
-
-            // 1. Armazenar o Token JWT no localStorage após o registo (autologin)
-            localStorage.setItem('jwtToken', data.token);
             
-            // 2. Redirecionar para a Home ou para a página de perfil
+            // Verifica se há token na resposta (se for o caso de autologin)
+            if (data.result && data.result.token) {
+                 localStorage.setItem('jwtToken', data.result.token); 
+            }
+           
+            // Redirecionar para a Home ou para a página de perfil após sucesso
             navigate('/');
             
-            // Retornar os dados do utilizador ou um indicador de sucesso
-            return data.user; 
+            return data.result; 
 
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : String(err);
@@ -53,22 +83,22 @@ const useAuth = () => {
         }
     };
 
-    // Apenas a função register é necessária para esta página
     return { register, isLoading, error };
 };
 // ----------------------------------------------------------------------
 
 
-const Register: React.FC = () => {
+const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { t } = useLanguage();
-  const { register, isLoading, error } = useAuth(); // Usar o hook simulado
+  const { register, isLoading, error } = useAuth(); 
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    register(name, email, password);
+    // A função register no hook simula o envio do nome, email e password
+    register(name, email, password); 
   };
 
   const inputClasses = "w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-800/90 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 pl-12 transition-all duration-300";
@@ -85,8 +115,8 @@ const Register: React.FC = () => {
         {/* Título */}
         <div className="text-center mb-8">
           <UserPlus className={`w-10 h-10 mx-auto mb-4 ${goldColor}`} />
-          <h1 className="text-3xl font-extrabold text-white">{t('register.title') || 'Criar Nova Conta'}</h1>
-          <p className="text-gray-400 mt-2">{t('register.subtitle') || 'Junte-se a nós para aceder a reservas exclusivas.'}</p>
+          <h1 className="text-3xl font-extrabold text-white">{t('register.title')}</h1>
+          <p className="text-gray-400 mt-2">{t('register.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -96,7 +126,7 @@ const Register: React.FC = () => {
             <User className={iconClasses} />
             <input
               type="text"
-              placeholder={t('form.name') || "Nome Completo"}
+              placeholder={t('form.name')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={`${inputClasses} peer`}
@@ -109,7 +139,7 @@ const Register: React.FC = () => {
             <Mail className={iconClasses} />
             <input
               type="email"
-              placeholder={t('form.email') || "Endereço de Email"}
+              placeholder={t('form.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={`${inputClasses} peer`}
@@ -117,17 +147,17 @@ const Register: React.FC = () => {
             />
           </div>
 
-          {/* Campo Password */}
+          {/* Campo Password - CORRIGIDO minLength e Placeholder */}
           <div className="relative group">
             <Lock className={iconClasses} />
             <input
               type="password"
-              placeholder={t('form.password') || "Palavra-Passe (mínimo 6 caracteres)"}
+              placeholder={t('form.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`${inputClasses} peer`}
               required
-              minLength={6}
+              minLength={8} 
             />
           </div>
 
@@ -147,11 +177,11 @@ const Register: React.FC = () => {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                {t('register.registering') || 'A Registar...'}
+                {t('register.registering')}
               </>
             ) : (
               <>
-                {t('register.button') || 'Criar Conta'}
+                {t('register.button')}
                 <ArrowLeft className="w-5 h-5 ml-2 transform rotate-180" />
               </>
             )}
@@ -161,8 +191,8 @@ const Register: React.FC = () => {
         {/* Link para Login */}
         <div className="mt-8 text-center text-gray-400">
           <Link to="/login" className={`text-sm ${goldColor} hover:text-amber-300 transition-colors font-medium`}>
-            {t('register.haveAccount') || "Já tem conta? "}
-            <span className="underline">{t('register.loginHere') || "Entre aqui."}</span>
+            {t('register.haveAccount')}
+            <span className="underline">{t('register.loginHere')}</span>
           </Link>
         </div>
 
