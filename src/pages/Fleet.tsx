@@ -1,3 +1,4 @@
+import LocationPickerField from '../components/LocationPickerField';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -6,6 +7,7 @@ import {
     Zap, Map, AlertTriangle, DollarSign 
 } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 import { services } from '../data/services'; 
 import VehicleCard, { VehicleInterface } from '../components/VehicleCard'; 
 import { Service } from '../types'; 
@@ -51,44 +53,15 @@ const QuickBookingFormContent: React.FC<QuickBookingProps> = ({
     return (
         <form onSubmit={onSubmit} className="space-y-4">
             
-            {/* PICKUP (Com Botão de Localização - Estilo do VehicleDetail) */}
-            <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${iconColor}`} />
-                <input
-                    type="text"
-                    placeholder={t('booking.pickupAddress') || 'Endereço de Recolha'}
-                    ref={pickupRef}
-                    // NOTA: Não usamos value={data.pickup} para evitar conflitos com o Autocomplete.
-                    // Usamos defaultValue e deixamos o Autocomplete controlar o valor.
-                    defaultValue={data.pickup} 
-                    onChange={() => setError(null)} 
-                    className={`${inputClasses} pl-12 pr-12`}
-                    required
-                />
-                {/* Botão de Geolocalização */}
-                <button
-                    type="button"
-                    onClick={handleLocateMe}
-                    title={t('booking.useCurrentLocation') || 'Usar Localização Atual'}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-gold transition-colors"
-                >
-                    <Map className="w-5 h-5" />
-                </button>
-            </div>
-            
-            {/* DROPOFF */}
-            <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${iconColor}`} />
-                <input
-                    type="text"
-                    placeholder={t('booking.dropoffAddress') || 'Endereço de Destino'}
-                    ref={dropoffRef}
-                    defaultValue={data.dropoff}
-                    onChange={() => setError(null)} 
-                    className={`${inputClasses} pl-12`}
-                    required
-                />
-            </div>
+            {/* Seletor de localizações com mapa */}
+            <LocationPickerField
+                pickup={data.pickup}
+                dropoff={data.dropoff}
+                onConfirm={(pickup, dropoff) => {
+                    setData(prev => ({ ...prev, pickup, dropoff }));
+                    setError(null);
+                }}
+            />
             
             {/* DATE & TIME */}
             <div className="grid grid-cols-2 gap-2">
@@ -362,7 +335,14 @@ const VehicleCarousel: React.FC<{ vehicles: VehicleInterface[] }> = ({ vehicles 
 // --- COMPONENTE PRINCIPAL DA FROTA ---
 const Fleet: React.FC = () => {
     const { t } = useLanguage();
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+
+    useSEO({
+      title: 'Frota de Veículos | JJ Transfers Madeira — Viaturas Premium para Transfers Privados',
+      description: 'Conheça a frota de veículos premium da JJ Transfers Madeira. Sedans executivos, MPVs e vans para transfers privados, passeios e transporte de grupos na Madeira.',
+      keywords: 'frota transfers madeira, veículos transfer madeira, van transfer madeira, transfer grupo madeira, sedan executivo madeira',
+      url: '/fleet',
+    });
     
     // ESTADOS GERAIS
     const [vehicles, setVehicles] = useState<VehicleInterface[]>([]);

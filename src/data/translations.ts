@@ -97,6 +97,7 @@ export const translations = {
       services: 'Serviços',
       about: 'Sobre Nós',
       news: 'Notícias',
+      blog: 'Blog',
       contact: 'Contacto',
       book: 'Reservar'
     },
@@ -253,6 +254,25 @@ export const translations = {
       
       // CHAVE NOVA DE ERRO
       geoBrowserError: 'Ocorreu um erro na geolocalização ou a API do Google Maps não está disponível no seu navegador.',
+
+      // Chaves em falta no fluxo de reserva (PT)
+      tripAddresses: 'Localização',
+      tripDateTime: 'Data & Hora',
+      vehicleSelected: 'Veículo Selecionado',
+      noVehicleForService: 'Não há veículos disponíveis para este serviço.',
+      noVehicleTip: 'Por favor, selecione um veículo antes de escolher a data/hora.',
+      tripSummary: 'Resumo da Viagem',
+      contactDetails: 'Dados do Contacto',
+      creditCard: 'Cartão de Crédito',
+      completeBooking: 'Concluir Reserva',
+      submittingPayment: 'A Processar Pagamento...',
+      successTitle: 'Reserva Confirmada!',
+      successMessage: 'A sua reserva foi efetuada com sucesso. Em breve receberá um email com os detalhes.',
+      paymentInfo: 'Informação de Pagamento',
+      method: 'Método',
+      payMultibanco: 'Por favor, efetue o pagamento antes da data limite.',
+      paymentProcessed: 'Pagamento com Cartão Processado com Sucesso.',
+      goToHome: 'Voltar à Página Inicial',
     },
     // Chaves de validação (fora da secção booking)
     validation: {
@@ -355,7 +375,12 @@ export const translations = {
         priceNoteTitle: 'Preço Estimado',
         priceNoteDesc: 'O preço final depende da frota disponível e dos requisitos de rota. Será confirmado antes do pagamento.',
         sidebarNewsTitle: 'Notícias e Dicas',
+        sidebarTopicsTitle: 'Tópicos Populares',
         bonusFeature: 'Exclusivo: {{feature}}',
+        fetchError: 'Não foi possível carregar a frota. Tente novamente mais tarde.',
+        formError: 'Por favor, preencha todos os endereços.',
+        noVehiclesTitle: 'Nenhum Veículo Encontrado',
+        noVehiclesMessage: 'Tente ajustar os seus filtros de pesquisa.',
         
         // Chaves de tradução específicas da página Services (mantidas por compatibilidade)
         'servicesPage.title': 'Os Nossos Serviços Premium',
@@ -627,7 +652,9 @@ export const translations = {
         budget: 'Orçamento Personalizado',
         budgetText: 'Se o seu pedido é complexo, a nossa equipa está pronta para criar uma solução à medida.',
         supportTitle: 'Apoio ao Cliente',
-        supportText: 'Tem dúvidas sobre este serviço? A nossa equipa está disponível 24/7.'
+        supportText: 'Tem dúvidas sobre este serviço? A nossa equipa está disponível 24/7.',
+        fetchError: 'Não foi possível carregar os serviços. Tente novamente mais tarde.',
+        benefitsTitle: 'Porquê Escolher a Nossa Empresa?',
     },
     benefits: {
         certifiedDriversTitle: "Motoristas Certificados",
@@ -739,6 +766,7 @@ export const translations = {
       services: 'Services',
       about: 'About Us',
       news: 'News',
+      blog: 'Blog',
       contact: 'Contact',
       book: 'Book'
     },
@@ -920,6 +948,21 @@ export const translations = {
     geolocConvertError: 'Could not convert location to address.',
     geolocSet: 'Location set to: ',
     geoBrowserError: 'An error occurred in geolocation or the Google Maps API is not available in your browser.',
+
+    // Missing keys in booking flow (EN)
+    noVehicleForService: 'No vehicles available for this service.',
+    tripSummary: 'Trip Summary',
+    contactDetails: 'Contact Details',
+    creditCard: 'Credit Card',
+    completeBooking: 'Complete Booking',
+    submittingPayment: 'Processing Payment...',
+    successTitle: 'Booking Confirmed!',
+    successMessage: 'Your booking was successful. You will receive an email with the details shortly.',
+    paymentInfo: 'Payment Information',
+    method: 'Method',
+    payMultibanco: 'Please make the payment before the due date.',
+    paymentProcessed: 'Credit Card Payment Processed Successfully.',
+    goToHome: 'Back to Home',
     pickupLabel: 'Pickup',
     dropoffLabel: 'Dropoff',
     dateTimeLabel: 'Date & Time',
@@ -1028,7 +1071,12 @@ export const translations = {
         priceNoteTitle: 'Estimated Price',
         priceNoteDesc: 'The final price depends on the available fleet and route requirements. It will be confirmed before payment.',
         sidebarNewsTitle: 'News and Tips',
+        sidebarTopicsTitle: 'Popular Topics',
         bonusFeature: 'Exclusive: {{feature}}',
+        fetchError: 'Could not load the fleet. Please try again later.',
+        formError: 'Please fill in all addresses.',
+        noVehiclesTitle: 'No Vehicles Found',
+        noVehiclesMessage: 'Try adjusting your search filters.',
         
         // Chaves de tradução específicas da página Services (mantidas por compatibilidade)
         'servicesPage.title': 'Our Premium Services',
@@ -1299,7 +1347,9 @@ export const translations = {
         budget: 'Custom Quote',
         budgetText: 'If your request is complex, our team is ready to create a tailor-made solution.',
         supportTitle: 'Customer Support',
-        supportText: 'Have questions about this service? Our team is available 24/7.'
+        supportText: 'Have questions about this service? Our team is available 24/7.',
+        fetchError: 'Could not load services. Please try again later.',
+        benefitsTitle: 'Why Choose Our Company?',
     },
     benefits: {
         certifiedDriversTitle: "Certified Drivers",

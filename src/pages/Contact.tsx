@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, Clock, Send, Zap, Briefcase } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 
 // URL da sua API de backend. Mude para o domínio de produção quando fizer o deploy!
 const API_CONTACT_URL = 'http://localhost:3000/api/contact'; 
@@ -15,6 +16,13 @@ const TEXT_SECONDARY_CLASS = 'text-gray-400'; // Texto secundário/descrições
 // Componente principal
 const Contact: React.FC = () => {
   const { t } = useLanguage();
+
+  useSEO({
+    title: 'Contacto | JJ Transfers Madeira — Reserve o seu Transfer Privado',
+    description: 'Entre em contacto com a JJ Transfers Madeira. Reserve o seu transfer do aeroporto, passeio privado ou transporte executivo. Disponíveis 24h, 7 dias por semana.',
+    keywords: 'contacto transfers madeira, reservar transfer madeira, telefone transfers madeira, reserva transfer aeroporto madeira',
+    url: '/contact',
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',

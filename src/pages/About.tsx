@@ -1,7 +1,8 @@
 import React from 'react';
 import { ShieldCheck, Clock, MapPin, Users, Star, Award, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useLanguage } from '../hooks/useLanguage'; 
+import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 
 // --- Membros da Equipa 
 const teamMembers = [
@@ -84,6 +85,13 @@ const MadeiraGallery: React.FC<{ t: (key: string) => string }> = ({ t }) => {
 // --- Componente Principal About
 const About: React.FC = () => {
   const { t } = useLanguage();
+
+  useSEO({
+    title: 'Sobre Nós | JJ Transfers Madeira — A Empresa de Transfers Privados #1 da Madeira',
+    description: 'Conheça a JJ Transfers Madeira — empresa local especializada em transfers privados, passeios pela ilha e transporte executivo. Motoristas certificados, frota premium e compromisso total com a sua satisfação.',
+    keywords: 'sobre jj transfers madeira, empresa transfers madeira, transfers privados madeira, motoristas certificados madeira',
+    url: '/about',
+  });
 
   const primaryPillars = [
     {

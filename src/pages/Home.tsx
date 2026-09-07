@@ -10,6 +10,7 @@ import FixedVideoBackground from '../components/FixedVideoBackground';
 
 // Hooks e Dados
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 import { testimonials } from '../data/testimonials';
 
 // =================================================================
@@ -57,7 +58,14 @@ export interface VehicleInterface {
 
 const Home: React.FC = () => {
   // --- HOOKS DE LINGUAGEM ---
-  const { t, currentLanguage } = useLanguage(); 
+  const { t, currentLanguage } = useLanguage();
+
+  useSEO({
+    title: 'JJ Transfers Madeira — Transfer Aeroporto, Transfers Privados e Passeios na Ilha',
+    description: 'O melhor serviço de transfer privado da Madeira. Transfer do aeroporto do Funchal para qualquer hotel ou destino na ilha. Preço fixo, frota premium, disponível 24h.',
+    keywords: 'transfer madeira, transfer aeroporto madeira, transfer privado madeira, transfer funchal, transfers madeira, passeios madeira, transporte privado madeira',
+    url: '/',
+  });
   
   // --- ESTADOS DA HERO SECTION (Controle do Vídeo e Carrossel) ---
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);

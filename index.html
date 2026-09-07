@@ -2,15 +2,120 @@
 <html lang="pt-PT" id="html-root">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>J&amp;J Bespoke Travel Website</title>
+
+    <!-- Primary SEO -->
+    <title>JJ Transfers Madeira — Transfer Aeroporto, Transfers Privados e Passeios na Ilha</title>
+    <meta name="description" content="JJ Transfers Madeira — o melhor serviço de transfer privado do aeroporto do Funchal. Transfers privados, passeios pela ilha e transporte executivo na Madeira. Reserve online com preço fixo." />
+    <meta name="keywords" content="transfer madeira, transfer aeroporto madeira, transfer privado madeira, transfer funchal, transfers madeira, transporte privado madeira, passeios madeira, transfer aeroporto funchal, taxi privado madeira, transfer hotel madeira, excursões madeira, chauffeur madeira, madeira airport transfer, private transfer madeira" />
+    <meta name="author" content="JJ Transfers Madeira" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://jjtransfers.pt/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="JJ Transfers Madeira" />
+    <meta property="og:title" content="JJ Transfers Madeira — Transfer Aeroporto & Transfers Privados" />
+    <meta property="og:description" content="O melhor serviço de transfer privado da Madeira. Aeroporto do Funchal para qualquer ponto da ilha. Pontualidade, conforto e preço fixo garantido." />
+    <meta property="og:url" content="https://jjtransfers.pt/" />
+    <meta property="og:locale" content="pt_PT" />
+    <meta property="og:locale:alternate" content="en_GB" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="JJ Transfers Madeira — Transfer Aeroporto & Privados" />
+    <meta name="twitter:description" content="O melhor serviço de transfer privado da Madeira. Aeroporto do Funchal para qualquer ponto da ilha." />
+
+    <!-- Geo SEO local -->
+    <meta name="geo.region" content="PT-30" />
+    <meta name="geo.placename" content="Funchal, Madeira, Portugal" />
+    <meta name="geo.position" content="32.6669;-16.9241" />
+    <meta name="ICBM" content="32.6669, -16.9241" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- Schema.org — LocalBusiness + TaxiService -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": ["LocalBusiness", "TaxiService"],
+      "@id": "https://jjtransfers.pt",
+      "name": "JJ Transfers Madeira",
+      "alternateName": ["JJ Transfers", "JJ Bespoke Travel"],
+      "description": "Serviço de transfer privado na Madeira — aeroporto, hotéis, levadas e passeios pela ilha. Frota premium, motoristas certificados, preço fixo.",
+      "url": "https://jjtransfers.pt",
+      "telephone": "+351966060500",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Funchal",
+        "addressRegion": "Madeira",
+        "addressCountry": "PT",
+        "postalCode": "9000"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 32.6669,
+        "longitude": -16.9241
+      },
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "Madeira, Portugal"
+      },
+      "priceRange": "€€",
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Serviços de Transfer Madeira",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "Service", "name": "Transfer Aeroporto Madeira", "description": "Transfer privado entre o Aeroporto Internacional da Madeira e qualquer hotel ou alojamento na ilha." }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "Service", "name": "Passeios Privados pela Madeira", "description": "Excursões privadas personalizadas pelos pontos mais emblemáticos da Ilha da Madeira." }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "Service", "name": "Transporte Executivo Madeira", "description": "Serviço de chauffeur para viagens de negócios e ocasiões especiais na Madeira." }
+          }
+        ]
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script 
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZ3ZN1Kd_oGRo512zuggnZ_j0jsZxwAPE&libraries=places" 
+    <script>
+      window.gm_authFailure = function() {
+        window.__googleMapsUnavailable = true;
+      };
+      (function() {
+        var _origError = console.error;
+        var _origWarn = console.warn;
+        var MAPS_NOISE = ['enable Billing', 'BillingNotEnabled', 'Geocoding Service', 'gmp-get-started', 'billing/enable', 'Places API error'];
+        function isMapsNoise(args) {
+          return args.some(function(a) {
+            return typeof a === 'string' && MAPS_NOISE.some(function(k) { return a.indexOf(k) !== -1; });
+          });
+        }
+        console.error = function() {
+          if (!isMapsNoise(Array.prototype.slice.call(arguments))) _origError.apply(console, arguments);
+        };
+        console.warn = function() {
+          if (!isMapsNoise(Array.prototype.slice.call(arguments))) _origWarn.apply(console, arguments);
+        };
+      })();
+    </script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZ3ZN1Kd_oGRo512zuggnZ_j0jsZxwAPE&libraries=places"
       async defer>
     </script>
   </body>

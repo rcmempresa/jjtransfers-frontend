@@ -24,6 +24,7 @@ const Header: React.FC = () => {
     { path: '/fleet', key: 'nav.fleet' },
     { path: '/about', key: 'nav.about' },
     { path: '/news', key: 'nav.news' },
+    { path: '/blog', key: 'nav.blog' },
     { path: '/contact', key: 'nav.contact' },
   ];
 

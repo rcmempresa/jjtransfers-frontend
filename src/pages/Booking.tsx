@@ -9,10 +9,12 @@ import {
 } from 'lucide-react'; 
 
 // Componentes (assumindo a sua estrutura de ficheiros)
-import BookingForm from '../components/BookingForm'; 
+import BookingForm from '../components/BookingForm';
 import VehicleCard from '../components/VehicleCard';
-import ClientDetailsStep from '../components/ClientDetailsStep'; 
+import ClientDetailsStep from '../components/ClientDetailsStep';
+import LocationMapPicker from '../components/LocationMapPicker';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 import ElectricBorder from '../components/ElectricBorder'; 
 
 // ----------------------------------------------------------------------
@@ -141,6 +143,13 @@ const Booking: React.FC = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+
+  useSEO({
+    title: 'Reservar Transfer Madeira | JJ Transfers — Preço Fixo, Confirmação Imediata',
+    description: 'Reserve o seu transfer privado na Madeira em 60 segundos. Transfer do aeroporto do Funchal, passeios e transporte executivo. Preço fixo, sem surpresas, confirmação imediata.',
+    keywords: 'reservar transfer madeira, booking transfer madeira, preço transfer aeroporto madeira, reserva online transfer madeira',
+    url: '/booking',
+  });
   const isMobile = useIsMobile(); 
   
   const initialTripDetails = location.state?.tripDetails; 
@@ -323,7 +332,9 @@ const Booking: React.FC = () => {
   }, [tripDetails]);
 
   const isHourlyService = useMemo(() => {
-    return selectedService?.id === "6" || (selectedService?.title.includes('Hora') ?? false);
+    if (!selectedService) return false;
+    const title = selectedService.title.toLowerCase();
+    return title.includes('hora') || title.includes('hourly') || title.includes('hour');
   }, [selectedService]);
 
   const validateCurrentSlotAvailability = useCallback((): boolean => {
@@ -621,7 +632,27 @@ const Booking: React.FC = () => {
 
             {/* Progress Steps */}
             <div className="mb-12 drop-shadow-xl">
-              <div className="flex items-center justify-center space-x-4 mb-8">
+
+              {/* Mobile: indicador simplificado */}
+              <div className="sm:hidden mb-8 text-center">
+                <p className="text-sm text-gray-400 mb-1">
+                  Passo {currentStep} de {steps.length} —{' '}
+                  <span className={goldColor}>{steps[currentStep - 1]?.title.replace(/^\d+\.\s*/, '')}</span>
+                </p>
+                <div className="flex justify-center gap-1 mt-2">
+                  {steps.map((step) => (
+                    <div
+                      key={step.step}
+                      className={`h-1 w-8 rounded-full transition-all duration-300 ${
+                        step.completed ? 'bg-green-500' : currentStep === step.step ? 'bg-amber-400' : 'bg-gray-700'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop: círculos completos */}
+              <div className="hidden sm:flex items-center justify-center space-x-4 mb-8">
                 {steps.map((step, index) => (
                   <React.Fragment key={step.step}>
                     <div className="flex items-center">
@@ -636,9 +667,9 @@ const Booking: React.FC = () => {
                       >
                         {step.completed ? <Check className="w-5 h-5" /> : step.step}
                       </div>
-                      <span 
-                        className={`ml-3 text-sm font-medium hidden sm:inline transition-colors duration-300 ${
-                            currentStep === step.step ? goldColor : 'text-gray-200' 
+                      <span
+                        className={`ml-3 text-sm font-medium transition-colors duration-300 ${
+                            currentStep === step.step ? goldColor : 'text-gray-200'
                         }`}
                       >
                         {step.title}
@@ -650,6 +681,7 @@ const Booking: React.FC = () => {
                   </React.Fragment>
                 ))}
               </div>
+
             </div>
 
             {/* Step Content */}
@@ -664,22 +696,27 @@ const Booking: React.FC = () => {
                   </button>
               )}
 
-              {/* PASSO 1: Endereços */}
-              {currentStep === 1 && ( 
-                <BorderWrapper step={1}>
-                    <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">1. {t('booking.tripAddresses') || 'Localização'}</h2>
-                    
-                    <BookingForm 
-                      onSubmit={handleAddressSubmit} 
-                      initialData={tripDetails || undefined} 
-                      compact={false} 
-                      showDateAndTime={false} 
-                      showServiceAndVehicle={false}
-                      showTripType={false} 
-                      reservedSlots={reservedSlots} 
-                      selectedVehicleId={selectedVehicle?.id} 
+              {/* PASSO 1: Localização com mapa estilo Uber */}
+              {currentStep === 1 && (
+                <div className="max-w-2xl mx-auto">
+                    <h2 className="text-3xl font-bold text-white mb-6 text-center drop-shadow-lg">
+                        1. {t('booking.tripAddresses') || 'Localização'}
+                    </h2>
+                    <LocationMapPicker
+                        initialPickup={tripDetails?.pickupAddress || ''}
+                        initialDropoff={tripDetails?.dropoffAddress || ''}
+                        onConfirm={(result) => handleAddressSubmit({
+                            pickupAddress: result.pickupAddress,
+                            dropoffAddress: result.dropoffAddress,
+                            date: tripDetails?.date || new Date().toISOString().split('T')[0],
+                            time: tripDetails?.time || '10:00',
+                            tripType: tripDetails?.tripType || 'one-way',
+                            returnDate: tripDetails?.returnDate,
+                            returnTime: tripDetails?.returnTime,
+                            durationHours: tripDetails?.durationHours || 1,
+                        })}
                     />
-                </BorderWrapper>
+                </div>
               )}
 
               {/* PASSO 2: Seleção de Serviço */}

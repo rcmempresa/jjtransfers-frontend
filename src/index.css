@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mapa escuro — inverte tiles OSM e corrige matiz para manter cores naturais */
+.map-tiles-dark {
+  filter: invert(100%) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
+
 /* Tradução do calendário para português */
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;

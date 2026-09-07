@@ -1,6 +1,8 @@
+import LocationPickerField from '../components/LocationPickerField';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useLanguage } from '../hooks/useLanguage'; 
-import { useNavigate } from 'react-router-dom'; 
+import { useLanguage } from '../hooks/useLanguage';
+import { useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 
 // Importa ícones da Lucide-React
 import { 
@@ -187,42 +189,15 @@ const QuickBookingFormContent: React.FC<QuickBookingProps> = ({
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
             </div>
 
-            {/* PICKUP (Com botão de geolocalização) */}
-            <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${iconColor}`} />
-                <input
-                    type="text"
-                    name="pickup"
-                    placeholder={t('booking.pickupAddress') || 'Endereço de Recolha'}
-                    ref={pickupRef} 
-                    onChange={() => setError(null)} 
-                    className={`${inputClasses} pl-9 pr-9`}
-                    required
-                />
-                {/* Botão de Geolocalização */}
-                <button
-                    type="button"
-                    onClick={handleLocateMe}
-                    title={t('booking.useCurrentLocation') || 'Usar Localização Atual'}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-gold transition-colors"
-                >
-                    <Map className="w-4 h-4" />
-                </button>
-            </div>
-            
-            {/* DROPOFF */}
-            <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${iconColor}`} />
-                <input
-                    type="text"
-                    name="dropoff"
-                    placeholder={t('booking.dropoffAddress') || 'Endereço de Destino'}
-                    ref={dropoffRef} 
-                    onChange={() => setError(null)} 
-                    className={`${inputClasses} pl-9`}
-                    required
-                />
-            </div>
+            {/* Seletor de localizações com mapa */}
+            <LocationPickerField
+                pickup={data.pickup}
+                dropoff={data.dropoff}
+                onConfirm={(pickup, dropoff) => {
+                    setData(prev => ({ ...prev, pickup, dropoff }));
+                    setError(null);
+                }}
+            />
             
             <div className={`grid ${gridCols}`}>
                 {/* DATE */}
@@ -530,9 +505,16 @@ const ContactCTA = ({ t }) => (
 
 // --- COMPONENTE PRINCIPAL: SERVICES (COM NOVO LAYOUT) ---
 const Services = () => {
-    
+
     const { t } = useLanguage();
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+
+    useSEO({
+      title: 'Serviços de Transfer Madeira | Aeroporto, Passeios Privados e Transporte Executivo',
+      description: 'Todos os serviços de transfer e transporte privado na Madeira: transfer do aeroporto do Funchal, passeios pela ilha, transporte executivo e transfers para casamentos. Reserve online.',
+      keywords: 'serviços transfer madeira, transfer aeroporto funchal, passeios privados madeira, transporte executivo madeira, transfer casamento madeira, excursões madeira',
+      url: '/services',
+    });
     
     // ESTADOS
     const [fetchedServices, setFetchedServices] = useState<any[]>([]);
