@@ -9,7 +9,7 @@ interface SEOProps {
   type?: string;
 }
 
-const BASE_URL = 'https://jjtransfers.pt';
+const BASE_URL = 'https://jjtransfersmadeira.com';
 const SITE_NAME = 'JJ Transfers Madeira';
 
 export function useSEO({ title, description, keywords, image, url, type = 'website' }: SEOProps) {

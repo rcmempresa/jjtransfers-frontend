@@ -56,7 +56,7 @@ const BlogList: React.FC = () => {
   useSEO({
     title: 'Blog JJ Transfers Madeira — Guias, Roteiros e Dicas de Viagem',
     description: 'Descubra os melhores roteiros na Madeira, dicas de transfers do aeroporto, passeios privados e tudo o que precisa saber para uma visita inesquecível à Ilha da Madeira.',
-    url: 'https://jjtransfers.pt/blog',
+    url: 'https://jjtransfersmadeira.com/blog',
   });
 
   useEffect(() => {
@@ -200,7 +200,7 @@ export const BlogPost: React.FC = () => {
     title: post ? `${post.title} | JJ Transfers Madeira` : 'JJ Transfers Madeira — Blog',
     description: post?.summary || 'Dicas de viagem e transfers privados na Madeira.',
     image: post?.image || undefined,
-    url: post ? `https://jjtransfers.pt/blog/${post.id}/${toSlug(post.title)}` : undefined,
+    url: post ? `https://jjtransfersmadeira.com/blog/${post.id}/${toSlug(post.title)}` : undefined,
   });
 
   useEffect(() => {
@@ -232,7 +232,7 @@ export const BlogPost: React.FC = () => {
       author: { '@type': 'Person', name: post.author },
       publisher: { '@type': 'Organization', name: 'JJ Transfers Madeira' },
       datePublished: post.date,
-      mainEntityOfPage: { '@type': 'WebPage', '@id': `https://jjtransfers.pt/blog/${post.id}` },
+      mainEntityOfPage: { '@type': 'WebPage', '@id': `https://jjtransfersmadeira.com/blog/${post.id}` },
     });
     document.head.appendChild(script);
     return () => { document.getElementById('blog-schema')?.remove(); };

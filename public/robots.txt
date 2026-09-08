@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jjtransfers.pt/sitemap.xml
+Sitemap: https://jjtransfersmadeira.com/sitemap.xml

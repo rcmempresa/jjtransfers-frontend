@@ -3,81 +3,81 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <url>
-    <loc>https://jjtransfers.pt/</loc>
+    <loc>https://jjtransfersmadeira.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfers.pt/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfers.pt/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/"/>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/services</loc>
+    <loc>https://jjtransfersmadeira.com/services</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/booking</loc>
+    <loc>https://jjtransfersmadeira.com/booking</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/fleet</loc>
+    <loc>https://jjtransfersmadeira.com/fleet</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/blog</loc>
+    <loc>https://jjtransfersmadeira.com/blog</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/blog/6/transfer-aeroporto-madeira-tudo-o-que-precisa-saber-em-2025</loc>
+    <loc>https://jjtransfersmadeira.com/blog/6/transfer-aeroporto-madeira-tudo-o-que-precisa-saber-em-2025</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/blog/7/10-lugares-imperdiveis-na-madeira-que-tem-de-visitar-em-2025</loc>
+    <loc>https://jjtransfersmadeira.com/blog/7/10-lugares-imperdiveis-na-madeira-que-tem-de-visitar-em-2025</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/blog/8/levadas-da-madeira-os-melhores-percursos-e-como-chegar-em-2025</loc>
+    <loc>https://jjtransfersmadeira.com/blog/8/levadas-da-madeira-os-melhores-percursos-e-como-chegar-em-2025</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/blog/9/funchal-guia-completo-para-visitar-a-capital-da-madeira</loc>
+    <loc>https://jjtransfersmadeira.com/blog/9/funchal-guia-completo-para-visitar-a-capital-da-madeira</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/blog/10/transfer-privado-vs-taxi-na-madeira-qual-a-melhor-opcao</loc>
+    <loc>https://jjtransfersmadeira.com/blog/10/transfer-privado-vs-taxi-na-madeira-qual-a-melhor-opcao</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/blog/11/monte-camacha-e-camara-de-lobos-passeios-privados-na-madeira</loc>
+    <loc>https://jjtransfersmadeira.com/blog/11/monte-camacha-e-camara-de-lobos-passeios-privados-na-madeira</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/about</loc>
+    <loc>https://jjtransfersmadeira.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://jjtransfers.pt/contact</loc>
+    <loc>https://jjtransfersmadeira.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
