@@ -412,9 +412,184 @@ const DetailModal = ({
 };
 
 // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// CreateReservationModal
+// ─────────────────────────────────────────────
+interface FleetOption { id: number; name: string; category: string; }
+interface ServiceOption { id: number; name: string; }
+
+const emptyCreate = (date?: string) => ({
+    passenger_name: '',
+    passenger_email: '',
+    passenger_phone: '',
+    pickup_address: '',
+    dropoff_address: '',
+    trip_pickup_time: date ? `${date}T09:00` : '',
+    trip_duration_minutes: '60',
+    fleet_id: '',
+    service_id: '',
+    final_price: '',
+    special_requests: '',
+    status: 'CONFIRMED' as ReservationStatus,
+});
+
+const CreateReservationModal = ({
+    initialDate, onClose, onSaved, authHeaders, base,
+}: {
+    initialDate?: string;
+    onClose: () => void;
+    onSaved: () => void;
+    authHeaders: Record<string, string>;
+    base: string;
+}) => {
+    const [form, setForm] = useState(emptyCreate(initialDate));
+    const [isSaving, setIsSaving] = useState(false);
+    const [fleets, setFleets] = useState<FleetOption[]>([]);
+    const [services, setServices] = useState<ServiceOption[]>([]);
+
+    useEffect(() => {
+        fetch(`${base}api/cars`).then(r => r.json()).then(d => {
+            const list = Array.isArray(d) ? d : (d.data || []);
+            setFleets(list.map((c: any) => ({ id: c.id, name: c.name, category: c.category })));
+        }).catch(() => {});
+        fetch(`${base}api/services`).then(r => r.json()).then(d => {
+            const list = Array.isArray(d) ? d : (d.data || []);
+            setServices(list.map((s: any) => ({ id: s.id, name: s.name?.pt || s.name || 'Serviço' })));
+        }).catch(() => {});
+    }, [base]);
+
+    const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const res = await fetch(`${base}api/admin/reservations`, {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify({
+                    ...form,
+                    fleet_id: parseInt(form.fleet_id),
+                    service_id: form.service_id ? parseInt(form.service_id) : null,
+                    trip_duration_minutes: parseInt(form.trip_duration_minutes),
+                    final_price: form.final_price ? parseFloat(form.final_price) : 0,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'Erro ao criar reserva.');
+            toast.success('Reserva criada com sucesso!');
+            onSaved();
+            onClose();
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Erro ao criar reserva.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const inputCls = 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-400';
+    const labelCls = 'block text-xs font-medium text-gray-400 mb-1';
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Plus className="w-5 h-5 text-amber-400" /> Nova Reserva
+                    </h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">✕</button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {/* Passageiro */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelCls}>Nome do Passageiro *</label>
+                            <input required className={inputCls} value={form.passenger_name} onChange={e => set('passenger_name', e.target.value)} placeholder="Nome completo" />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Email *</label>
+                            <input required type="email" className={inputCls} value={form.passenger_email} onChange={e => set('passenger_email', e.target.value)} placeholder="email@exemplo.com" />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Telefone</label>
+                            <input className={inputCls} value={form.passenger_phone} onChange={e => set('passenger_phone', e.target.value)} placeholder="+351 ..." />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Preço Final (€)</label>
+                            <input type="number" step="0.01" min="0" className={inputCls} value={form.final_price} onChange={e => set('final_price', e.target.value)} placeholder="0.00" />
+                        </div>
+                    </div>
+
+                    {/* Viagem */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelCls}>Data e Hora de Recolha *</label>
+                            <input required type="datetime-local" className={inputCls} value={form.trip_pickup_time} onChange={e => set('trip_pickup_time', e.target.value)} />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Duração (minutos)</label>
+                            <input type="number" min="15" className={inputCls} value={form.trip_duration_minutes} onChange={e => set('trip_duration_minutes', e.target.value)} />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Local de Recolha</label>
+                            <input className={inputCls} value={form.pickup_address} onChange={e => set('pickup_address', e.target.value)} placeholder="Aeroporto do Funchal..." />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Local de Destino</label>
+                            <input className={inputCls} value={form.dropoff_address} onChange={e => set('dropoff_address', e.target.value)} placeholder="Hotel, morada..." />
+                        </div>
+                    </div>
+
+                    {/* Veículo e Serviço */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelCls}>Veículo *</label>
+                            <select required className={inputCls} value={form.fleet_id} onChange={e => set('fleet_id', e.target.value)}>
+                                <option value="">Selecionar veículo...</option>
+                                {fleets.map(f => <option key={f.id} value={f.id}>{f.name} ({f.category})</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className={labelCls}>Serviço</label>
+                            <select className={inputCls} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
+                                <option value="">Selecionar serviço...</option>
+                                {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className={labelCls}>Estado</label>
+                            <select className={inputCls} value={form.status} onChange={e => set('status', e.target.value)}>
+                                <option value="CONFIRMED">Confirmada</option>
+                                <option value="PENDING">Pendente</option>
+                                <option value="COMPLETED">Concluída</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Notas */}
+                    <div>
+                        <label className={labelCls}>Notas / Pedidos Especiais</label>
+                        <textarea rows={3} className={inputCls} value={form.special_requests} onChange={e => set('special_requests', e.target.value)} placeholder="Informação adicional..." />
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                        <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-gray-400 bg-gray-800 hover:bg-gray-700 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={isSaving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-gray-900 bg-amber-400 hover:bg-amber-300 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                            Criar Reserva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 // CalendarView
 // ─────────────────────────────────────────────
-const CalendarView = ({ authHeaders, base, onUnauthorized, onReservationClick }: { authHeaders: Record<string, string>; base: string; onUnauthorized: () => void; onReservationClick: (id: number) => void }) => {
+const CalendarView = ({ authHeaders, base, onUnauthorized, onReservationClick, onNewReservation }: { authHeaders: Record<string, string>; base: string; onUnauthorized: () => void; onReservationClick: (id: number) => void; onNewReservation: (date: string) => void }) => {
     const today = new Date();
     const [viewYear,  setViewYear]  = useState(today.getFullYear());
     const [viewMonth, setViewMonth] = useState(today.getMonth()); // 0-indexed
@@ -634,6 +809,15 @@ const CalendarView = ({ authHeaders, base, onUnauthorized, onReservationClick }:
                             })}
                         </h3>
 
+                        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+                            <button
+                                onClick={() => onNewReservation(selectedDay)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-300 bg-amber-900/40 hover:bg-amber-900/60 transition-colors whitespace-nowrap"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                Nova Reserva
+                            </button>
+
                         {selectedDayBlocked ? (
                             <button
                                 onClick={() => handleUnblockDay(selectedDayBlocked)}
@@ -662,6 +846,7 @@ const CalendarView = ({ authHeaders, base, onUnauthorized, onReservationClick }:
                                 </button>
                             </div>
                         )}
+                        </div>
                     </div>
 
                     {selectedDayBlocked?.reason && (
@@ -718,6 +903,7 @@ const AdminDashboard: React.FC = () => {
     const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
     const [editingReservation,  setEditingReservation]  = useState<Reservation | null>(null);
     const [pendingCancelId,     setPendingCancelId]     = useState<number | null>(null);
+    const [creatingForDate,     setCreatingForDate]     = useState<string | null>(null);
     const [searchQuery,         setSearchQuery]         = useState('');
     const [lastRefreshed,       setLastRefreshed]       = useState<Date | null>(null);
 
@@ -1148,7 +1334,7 @@ const AdminDashboard: React.FC = () => {
 
                 {/* ════════════════════════ CALENDÁRIO ════════════════════════ */}
                 {activeTab === 'calendar' && (
-                    <CalendarView authHeaders={authHeaders} base={base} onUnauthorized={handleUnauthorized} onReservationClick={handleCalendarReservationClick} />
+                    <CalendarView authHeaders={authHeaders} base={base} onUnauthorized={handleUnauthorized} onReservationClick={handleCalendarReservationClick} onNewReservation={(date) => setCreatingForDate(date)} />
                 )}
 
                 {/* ════════════════════════ GESTÃO ════════════════════════ */}
@@ -1179,6 +1365,15 @@ const AdminDashboard: React.FC = () => {
                     onClose={() => setEditingReservation(null)}
                     onSaved={() => { fetchReservations(); fetchStats(); }}
                     onUnauthorized={handleUnauthorized}
+                    authHeaders={authHeaders}
+                    base={base}
+                />
+            )}
+            {creatingForDate !== null && (
+                <CreateReservationModal
+                    initialDate={creatingForDate}
+                    onClose={() => setCreatingForDate(null)}
+                    onSaved={() => { fetchReservations(); fetchStats(); }}
                     authHeaders={authHeaders}
                     base={base}
                 />
