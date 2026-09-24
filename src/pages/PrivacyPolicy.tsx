@@ -1,9 +1,17 @@
 import React from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 import { ShieldCheck, User, Mail, Zap } from 'lucide-react';
 
 const PrivacyPolicy: React.FC = () => {
   const { t } = useLanguage();
+
+  useSEO({
+    title: 'Politica de Privacidade | JJ Transfers Madeira',
+    description: 'Politica de privacidade da JJ Transfers Madeira. Saiba como protegemos os seus dados pessoais ao reservar transfers privados na Madeira.',
+    url: '/privacy',
+  });
+
   const GOLD_COLOR_CLASS = 'text-amber-400';
   const SECTION_TITLE_CLASS = 'text-2xl font-bold border-b border-gray-700 pb-2 mb-4';
 

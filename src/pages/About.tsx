@@ -87,9 +87,9 @@ const About: React.FC = () => {
   const { t } = useLanguage();
 
   useSEO({
-    title: 'Sobre Nós | JJ Transfers Madeira — A Empresa de Transfers Privados #1 da Madeira',
-    description: 'Conheça a JJ Transfers Madeira — empresa local especializada em transfers privados, passeios pela ilha e transporte executivo. Motoristas certificados, frota premium e compromisso total com a sua satisfação.',
-    keywords: 'sobre jj transfers madeira, empresa transfers madeira, transfers privados madeira, motoristas certificados madeira',
+    title: 'Sobre Nós | JJ Transfers Madeira — A Empresa de Transfers Privados #1 da Ilha da Madeira',
+    description: 'Conheça a JJ Transfers Madeira — empresa local especializada em transfers privados do aeroporto, passeios pela ilha da Madeira e transporte executivo. Motoristas certificados, frota premium, disponível 24h. Mais de 13.000 clientes satisfeitos.',
+    keywords: 'sobre jj transfers madeira, empresa transfers madeira, transfers privados madeira, motoristas certificados madeira, empresa transporte madeira, quem somos jj transfers, transfer privado funchal',
     url: '/about',
   });
 

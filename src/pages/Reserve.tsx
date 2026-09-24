@@ -2,12 +2,20 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BookingForm from '../components/BookingForm';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 import { TripDetails } from '../types';
 
 const Reserve: React.FC = () => {
     const { t } = useLanguage();
     const navigate = useNavigate();
     const location = useLocation();
+
+    useSEO({
+        title: 'Reservar Transfer na Madeira | JJ Transfers — Aeroporto Funchal, Passeios Privados, Preço Fixo',
+        description: 'Reserve o seu transfer privado na Ilha da Madeira. Transfer do aeroporto do Funchal, passeios pelas levadas, Cabo Girão, Porto Moniz e mais. Preço fixo, confirmação imediata, disponível 24h.',
+        keywords: 'reservar transfer madeira, reserva transfer aeroporto madeira, booking transfer funchal, preço transfer madeira, transfer online madeira',
+        url: '/reserve',
+    });
 
     // Extrai o ID do veículo da URL (Ex: /reserve?vehicle=id)
     const query = new URLSearchParams(location.search);

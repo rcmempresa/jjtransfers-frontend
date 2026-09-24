@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import LocationPickerField from './LocationPickerField';
 import { MapPin, Calendar, Clock, Car, Briefcase, ChevronDown, Map, Loader, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../hooks/useLanguage';
@@ -26,26 +27,6 @@ interface Vehicle {
 // =========================================================================
 // SIMULAÇÃO DA CHAMADA À API (SUBSTITUA PELA SUA LÓGICA REAL)
 // =========================================================================
-const fetchData = async <T,>(endpoint: string): Promise<T[]> => {
-    // Simulação de delay de rede
-    await new Promise(resolve => setTimeout(resolve, 800)); 
-    
-    if (endpoint === '/api/services') {
-        return [
-            { id: 'transfer', title: 'Transfer Aeroporto/Ponto' },
-            { id: 'hourly', title: 'Aluguer Horário (Chauffeur)' },
-            { id: 'tour', title: 'Tour Privado na Ilha' },
-        ] as T[];
-    }
-    if (endpoint === '/api/vehicles') {
-        return [
-            { id: '1', name: 'Sedan Executivo', price: 50 },
-            { id: '2', name: 'Van VIP Premium', price: 80 },
-            { id: '3', name: 'Minibus de Luxo', price: 120 },
-        ] as T[];
-    }
-    return [] as T[];
-};
 // =========================================================================
 
 // COORDENADAS PARA RESTRIÇÃO DA ILHA DA MADEIRA
@@ -63,7 +44,8 @@ interface BookingFormProps {
   showAddresses?: boolean; // Controla Morada de Recolha e Destino
   showTripType?: boolean;  // Controla o seletor Ida/Volta
   showDateAndTime?: boolean; // Controla todos os campos de Data e Hora
-  
+  showDurationHours?: boolean; // Controla o seletor de duração em horas (serviço horário)
+
   // Estes props vieram do Booking.tsx mas não são usados aqui, mas mantidos para compatibilidade:
   reservedSlots?: any[];
   selectedVehicleId?: string;
@@ -75,15 +57,17 @@ const BookingForm: React.FC<BookingFormProps> = ({
   compact = false, 
   showServiceAndVehicle = false,
   // 🚨 VALORES PADRÃO PARA OS NOVOS PROPS (TRUE para retrocompatibilidade)
-  showAddresses = true, 
+  showAddresses = true,
   showTripType = true,
   showDateAndTime = true,
+  showDurationHours = false,
   // Ignoramos os props não utilizados aqui
   // reservedSlots, selectedVehicleId
 }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'one-way' | 'hourly'>('one-way');
+  const [mapsAvailable, setMapsAvailable] = useState(true);
   
   // --- ESTADO PARA DADOS DA API ---
   const [fetchedServices, setFetchedServices] = useState<Service[]>([]);
@@ -105,7 +89,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
     returnTime: initialData?.returnTime || '10:00',
     service: initialData?.service || '',
     vehicleId: initialData?.vehicleId || '',
-    duration: initialData?.duration || '2'
+    duration: initialData?.duration || '2',
+    durationHours: initialData?.durationHours || 1,
   });
 
   // =========================================================================
@@ -118,18 +103,33 @@ const BookingForm: React.FC<BookingFormProps> = ({
         setLoading(true);
         setError(null);
         try {
-            const [servicesData, vehiclesData] = await Promise.all([
-                fetchData<Service>('/api/services'),
-                fetchData<Vehicle>('/api/vehicles'),
+            const base = import.meta.env.VITE_BACKEND_URL;
+            const [servicesRes, vehiclesRes] = await Promise.all([
+                fetch(`${base}api/services`),
+                fetch(`${base}api/cars`),
             ]);
+            if (!servicesRes.ok || !vehiclesRes.ok) throw new Error('Falha ao carregar dados da API.');
+
+            const servicesResult = await servicesRes.json();
+            const vehiclesResult = await vehiclesRes.json();
+
+            const servicesData: Service[] = (servicesResult.data || []).map((s: any) => ({
+                id: String(s.id),
+                title: s.name?.pt || s.name || String(s.id),
+            }));
+            const vehiclesData: Vehicle[] = (vehiclesResult.data || []).map((v: any) => ({
+                id: String(v.id),
+                name: v.name,
+                price: Number(v.base_price_per_hour) || 0,
+            }));
+
             setFetchedServices(servicesData);
             setFetchedVehicles(vehiclesData);
-            
-            // Definir o primeiro serviço como padrão se não houver um inicial
+
             if (servicesData.length > 0 && !initialData?.service) {
-                setFormData(prev => ({ 
-                    ...prev, 
-                    service: servicesData[0].id
+                setFormData(prev => ({
+                    ...prev,
+                    service: servicesData[0].id,
                 }));
             }
         } catch (err) {
@@ -147,44 +147,48 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // =========================================================================
   useEffect(() => {
     // Verifica se a biblioteca do Google Maps Places está carregada
-    if (!window.google || !window.google.maps || !window.google.maps.places) {
-        console.warn("Google Maps Places library não está carregada. O Autocomplete não funcionará.");
+    if ((window as any).__googleMapsUnavailable || !window.google || !window.google.maps || !window.google.maps.places) {
+        setMapsAvailable(false);
         return;
     }
 
-    const bounds = new window.google.maps.LatLngBounds(
-        new window.google.maps.LatLng(MADEIRA_BOUNDS.south, MADEIRA_BOUNDS.west),
-        new window.google.maps.LatLng(MADEIRA_BOUNDS.north, MADEIRA_BOUNDS.east)
-    );
+    try {
+        const bounds = new window.google.maps.LatLngBounds(
+            new window.google.maps.LatLng(MADEIRA_BOUNDS.south, MADEIRA_BOUNDS.west),
+            new window.google.maps.LatLng(MADEIRA_BOUNDS.north, MADEIRA_BOUNDS.east)
+        );
 
-    const options = {
-        componentRestrictions: { country: 'pt' }, 
-        fields: ['formatted_address'], 
-        strictBounds: true,
-        bounds: bounds,
-        types: ['establishment', 'geocode'],
-    };
-    
-    // Inicializa o Autocomplete num campo de input específico
-    const initializeAutocomplete = (ref: React.RefObject<HTMLInputElement>, fieldName: keyof TripDetails) => {
-        if (ref.current) {
-            const autocomplete = new window.google.maps.places.Autocomplete(ref.current, options);
-            
-            autocomplete.addListener('place_changed', () => {
-                const place = autocomplete.getPlace();
-                if (place.formatted_address) {
-                    setFormData(prev => ({ 
-                        ...prev, 
-                        [fieldName]: place.formatted_address 
-                    }));
-                }
-            });
+        const options = {
+            componentRestrictions: { country: 'pt' }, 
+            fields: ['formatted_address'], 
+            strictBounds: true,
+            bounds: bounds,
+            types: ['establishment', 'geocode'],
+        };
+        
+        // Inicializa o Autocomplete num campo de input específico
+        const initializeAutocomplete = (ref: React.RefObject<HTMLInputElement>, fieldName: keyof TripDetails) => {
+            if (ref.current) {
+                const autocomplete = new window.google.maps.places.Autocomplete(ref.current, options);
+                
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    if (place.formatted_address) {
+                        setFormData(prev => ({ 
+                            ...prev, 
+                            [fieldName]: place.formatted_address 
+                        }));
+                    }
+                });
+            }
+        };
+        
+        if (showAddresses) {
+            initializeAutocomplete(pickupRef, 'pickupAddress');
+            initializeAutocomplete(dropoffRef, 'dropoffAddress');
         }
-    };
-    
-    if (showAddresses) {
-        initializeAutocomplete(pickupRef, 'pickupAddress');
-        initializeAutocomplete(dropoffRef, 'dropoffAddress');
+    } catch {
+        setMapsAvailable(false);
     }
     
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -279,14 +283,17 @@ const BookingForm: React.FC<BookingFormProps> = ({
     const finalData: TripDetails = {
         ...formData,
         // Garante que o tipo de viagem é consistente
-        tripType: showTripType ? formData.tripType : 'one-way', 
-        
+        tripType: showTripType ? formData.tripType : 'one-way',
+
         // Garante que os campos de regresso só são enviados se for 'round-trip'
         returnDate: formData.tripType === 'round-trip' ? formData.returnDate : '',
         returnTime: formData.tripType === 'round-trip' ? formData.returnTime : '',
-        
+
         // No modo compact 'hourly', dropoff é vazio
         dropoffAddress: (compact && activeTab === 'hourly') ? '' : formData.dropoffAddress,
+
+        // Duração em horas para serviço horário
+        durationHours: showDurationHours ? (formData.durationHours || 1) : undefined,
     };
     
     if (onSubmit) {
@@ -356,61 +363,30 @@ const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-6">
-            {/* From Address (Pickup) - 🚨 CORREÇÃO APLICADA: value={formData.pickupAddress} */}
-            <div className="relative">
-              <div className="flex items-center bg-gray-800/80 rounded-xl lg:rounded-2xl p-3 lg:p-5 hover:bg-gray-700/80 transition-all border border-gray-600/50">
-                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-600 rounded-full flex items-center justify-center mr-3 lg:mr-4 shadow-sm">
-                  <MapPin className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
-                </div>
-                <div className="flex-1 pr-10">
-                  <label className="block text-xs lg:text-sm font-semibold text-gray-400 mb-1">{t('booking.from')} <span className="text-xs text-amber-500">(Madeira)</span></label>
-                  <input
-                    type="text"
-                    name="pickupAddress"
-                    ref={pickupRef} 
-                    value={formData.pickupAddress} // ✅ CORRIGIDO
-                    onChange={handleChange}
-                    placeholder={t('booking.addressPlaceholder')}
-                    className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm lg:text-lg"
-                    required
-                  />
-                </div>
-                {/* Botão de Localização Compacta */}
-                <button
-                  type="button"
-                  onClick={handleLocateMe}
-                  title="Usar Localização Atual"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-white hover:text-black hover:bg-amber-400 transition-colors"
-                >
-                  <Map className="w-4 h-4 lg:w-5 lg:h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* To Address or Duration */}
+            {/* Seletor de localizações com mapa (tabs one-way mostram picker completo) */}
             {activeTab === 'one-way' ? (
-              /* To Address (Dropoff) - 🚨 CORREÇÃO APLICADA: value={formData.dropoffAddress} */
-              <div className="relative">
-                <div className="flex items-center bg-gray-800/80 rounded-xl lg:rounded-2xl p-3 lg:p-5 hover:bg-gray-700/80 transition-all border border-gray-600/50">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-600 rounded-full flex items-center justify-center mr-3 lg:mr-4 shadow-sm">
-                    <MapPin className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs lg:text-sm font-semibold text-gray-400 mb-1">{t('booking.to')} <span className="text-xs text-amber-500">(Madeira)</span></label>
-                    <input
-                      type="text"
-                      name="dropoffAddress"
-                      ref={dropoffRef} 
-                      value={formData.dropoffAddress} // ✅ CORRIGIDO
-                      onChange={handleChange}
-                      placeholder={t('booking.addressPlaceholder')}
-                      className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm lg:text-lg"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
+              <LocationPickerField
+                pickup={formData.pickupAddress}
+                dropoff={formData.dropoffAddress}
+                onConfirm={(pickup, dropoff) =>
+                  setFormData(prev => ({ ...prev, pickupAddress: pickup, dropoffAddress: dropoff }))
+                }
+              />
             ) : (
+              <>
+                {/* Só pickup no modo horário */}
+                <LocationPickerField
+                  pickup={formData.pickupAddress}
+                  dropoff=""
+                  onConfirm={(pickup) =>
+                    setFormData(prev => ({ ...prev, pickupAddress: pickup }))
+                  }
+                />
+              </>
+            )}
+
+            {/* Duration (Hourly) */}
+            {activeTab === 'hourly' && (
               /* Duration (Hourly) - Mantido */
               <div className="relative">
                 <div className="flex items-center bg-gray-800/80 rounded-xl lg:rounded-2xl p-3 lg:p-5 hover:bg-gray-700/80 transition-all border border-gray-600/50">
@@ -497,49 +473,15 @@ const BookingForm: React.FC<BookingFormProps> = ({
       {toasterComponent}
       <form onSubmit={handleSubmit} className="space-y-6"> 
         
-        {/* 🚨 BLOC 1: Endereços (Visível APENAS no Passo 1) */}
+        {/* BLOC 1: Endereços — LocationPickerField com mapa */}
         {showAddresses && (
-          <>
-              {/* Pickup Address - 🚨 CORREÇÃO APLICADA: value={formData.pickupAddress} */}
-              <div className="relative">
-                <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
-                <input
-                  type="text"
-                  name="pickupAddress"
-                  ref={pickupRef} 
-                  value={formData.pickupAddress} // ✅ CORRIGIDO
-                  onChange={handleChange}
-                  placeholder={`${t('booking.pickupAddress')} (Madeira)`}
-                  className={`${inputClasses} pl-12 pr-12`} // Ajuste para o botão
-                  required
-                />
-                {/* NOVO BOTÃO DE LOCALIZAÇÃO (Versão Completa) */}
-                <button
-                  type="button"
-                  onClick={handleLocateMe}
-                  title="Usar Localização Atual"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-amber-400 transition-colors"
-                  style={{ marginTop: '-4px' }}
-                >
-                  <Map className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Dropoff Address - 🚨 CORREÇÃO APLICADA: value={formData.dropoffAddress} */}
-              <div className="relative">
-                <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
-                <input
-                  type="text"
-                  name="dropoffAddress"
-                  ref={dropoffRef} 
-                  value={formData.dropoffAddress} // ✅ CORRIGIDO
-                  onChange={handleChange}
-                  placeholder={`${t('booking.dropoffAddress')} (Madeira)`}
-                  className={`${inputClasses} pl-12`}
-                  required
-                />
-              </div>
-          </>
+          <LocationPickerField
+            pickup={formData.pickupAddress}
+            dropoff={formData.dropoffAddress}
+            onConfirm={(pickup, dropoff) =>
+              setFormData(prev => ({ ...prev, pickupAddress: pickup, dropoffAddress: dropoff }))
+            }
+          />
         )}
 
         {/* 🚨 BLOC 2: Tipo de Viagem, Datas e Horas (Visível APENAS no Passo 4) */}
@@ -571,6 +513,24 @@ const BookingForm: React.FC<BookingFormProps> = ({
                       />
                       <span>{t('booking.roundTrip')}</span>
                       </label>
+                  </div>
+              )}
+
+              {/* Duração em Horas (Visível apenas para serviço horário) */}
+              {showDurationHours && (
+                  <div className="relative">
+                      <Clock className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
+                      <select
+                          name="durationHours"
+                          value={formData.durationHours || 1}
+                          onChange={(e) => setFormData(prev => ({ ...prev, durationHours: Number(e.target.value) }))}
+                          className={`${inputClasses} pl-12 appearance-none`}
+                      >
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map(h => (
+                              <option key={h} value={h}>{h} hora{h !== 1 ? 's' : ''}</option>
+                          ))}
+                      </select>
+                      <ChevronDown className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${iconColor} pointer-events-none`} />
                   </div>
               )}
 

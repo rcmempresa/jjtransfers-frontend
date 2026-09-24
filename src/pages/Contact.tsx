@@ -18,9 +18,9 @@ const Contact: React.FC = () => {
   const { t } = useLanguage();
 
   useSEO({
-    title: 'Contacto | JJ Transfers Madeira — Reserve o seu Transfer Privado',
-    description: 'Entre em contacto com a JJ Transfers Madeira. Reserve o seu transfer do aeroporto, passeio privado ou transporte executivo. Disponíveis 24h, 7 dias por semana.',
-    keywords: 'contacto transfers madeira, reservar transfer madeira, telefone transfers madeira, reserva transfer aeroporto madeira',
+    title: 'Contacto | JJ Transfers Madeira — Reserve Transfer Aeroporto, Passeios e Transporte Privado',
+    description: 'Entre em contacto com a JJ Transfers Madeira. Reserve o seu transfer do aeroporto do Funchal, passeio privado pela ilha ou transporte executivo. WhatsApp +351 966 060 500. Disponíveis 24h, 7 dias por semana.',
+    keywords: 'contacto transfers madeira, reservar transfer madeira, telefone transfers madeira, whatsapp transfer madeira, reserva transfer aeroporto madeira, contactar jj transfers',
     url: '/contact',
   });
   const [formData, setFormData] = useState({

@@ -61,9 +61,9 @@ const Home: React.FC = () => {
   const { t, currentLanguage } = useLanguage();
 
   useSEO({
-    title: 'JJ Transfers Madeira — Transfer Aeroporto, Transfers Privados e Passeios na Ilha',
-    description: 'O melhor serviço de transfer privado da Madeira. Transfer do aeroporto do Funchal para qualquer hotel ou destino na ilha. Preço fixo, frota premium, disponível 24h.',
-    keywords: 'transfer madeira, transfer aeroporto madeira, transfer privado madeira, transfer funchal, transfers madeira, passeios madeira, transporte privado madeira',
+    title: 'JJ Transfers Madeira — Transfer Aeroporto Funchal, Transfers Privados, Passeios e Transporte na Ilha da Madeira',
+    description: 'JJ Transfers Madeira: o melhor serviço de transfer privado na Madeira. Transfer do aeroporto do Funchal para qualquer hotel. Passeios privados pelas levadas, Cabo Girão, Monte, Porto Moniz. O que fazer na Madeira? Reserve online com preço fixo, frota premium, 24h.',
+    keywords: 'transfer madeira, transfers madeira, transfer aeroporto madeira, transfer privado madeira, transfer funchal, transporte madeira, transporte privado madeira, passeios madeira, o que fazer na madeira, excursões madeira, taxi privado madeira, transfer aeroporto funchal, madeira airport transfer, private transfer madeira, levadas madeira transfer, cabo girão transfer, transfer porto moniz, shuttle madeira, transfer cruzeiro funchal',
     url: '/',
   });
   
@@ -976,8 +976,67 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* FAQ Section - Critical for AEO/Featured Snippets */}
+      <section className="py-20 bg-black/50 text-white border-y border-gray-700 backdrop-blur-sm" aria-labelledby="faq-title">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold uppercase tracking-widest text-amber-400 mb-3">
+              {currentLanguage === 'en' ? 'Frequently Asked Questions' : 'Perguntas Frequentes'}
+            </p>
+            <h2 id="faq-title" className="text-4xl font-extrabold text-white mb-4">
+              {currentLanguage === 'en' ? 'Everything About Transfers in Madeira' : 'Tudo Sobre Transfers na Madeira'}
+            </h2>
+            <p className="text-lg text-gray-400">
+              {currentLanguage === 'en' ? 'Find answers to the most common questions about transport and things to do in Madeira.' : 'Encontre respostas para as perguntas mais comuns sobre transporte e o que fazer na Madeira.'}
+            </p>
+          </div>
+          <div className="space-y-4">
+            {[
+              {
+                q: currentLanguage === 'en' ? 'How much does a transfer from Madeira airport to Funchal cost?' : 'Quanto custa um transfer do aeroporto da Madeira para o Funchal?',
+                a: currentLanguage === 'en' ? 'A private transfer from Madeira Airport (FNC) to central Funchal starts from 25 euros with a fixed price and no hidden fees. The price may vary depending on your destination and vehicle type. Book online at JJ Transfers Madeira for instant confirmation.' : 'O transfer privado do Aeroporto da Madeira (FNC) para o centro do Funchal tem preço fixo a partir de 25 euros, sem taxas escondidas. O preço pode variar conforme o destino e tipo de veículo. Reserve online na JJ Transfers Madeira para confirmação imediata.'
+              },
+              {
+                q: currentLanguage === 'en' ? 'How to get from Madeira airport to the hotel?' : 'Como ir do aeroporto da Madeira para o hotel?',
+                a: currentLanguage === 'en' ? 'The best way is to book a private transfer with JJ Transfers Madeira. Our driver meets you at the airport with a name sign, helps with your luggage, and takes you directly to your hotel. Alternatives include taxi, bus (Aerobus), or car rental.' : 'A melhor forma é reservar um transfer privado com a JJ Transfers Madeira. O motorista espera-o no aeroporto com placa com o seu nome, ajuda com a bagagem e leva-o diretamente ao seu hotel. Alternativas incluem táxi, autocarro (Aerobus) ou aluguer de carro.'
+              },
+              {
+                q: currentLanguage === 'en' ? 'What to do in Madeira? What are the best tours?' : 'O que fazer na Madeira? Quais os melhores passeios?',
+                a: currentLanguage === 'en' ? 'Madeira offers unique experiences: walk the levadas, visit Cabo Girão (the second highest skywalk in the world), take the Monte cable car, explore Porto Moniz (natural pools), watch dolphins, visit Câmara de Lobos, and hike Ponta de São Lourenço. JJ Transfers organizes private tours to all these places.' : 'A Madeira oferece experiências únicas: passear pelas levadas, visitar o Cabo Girão (o segundo skywalk mais alto do mundo), subir ao Monte de teleférico, explorar Porto Moniz (piscinas naturais), ver golfinhos, visitar Câmara de Lobos e percorrer a Ponta de São Lourenço. A JJ Transfers organiza passeios privados personalizados a todos estes locais.'
+              },
+              {
+                q: currentLanguage === 'en' ? 'What is the best transport in Madeira?' : 'Qual o melhor transporte na Madeira?',
+                a: currentLanguage === 'en' ? 'For tourists, a private transfer is the most comfortable and safe option. It avoids driving on mountain roads, allows you to customize your route, and includes a local driver who knows the best spots. JJ Transfers Madeira offers transfers and private tours with premium fleet, available 24 hours.' : 'Para turistas, o transfer privado é a opção mais cómoda e segura. Evita a preocupação de conduzir em estradas de montanha, permite personalizar o roteiro e inclui motorista local que conhece os melhores spots. A JJ Transfers Madeira oferece transfers e passeios privados com frota premium, disponível 24 horas.'
+              },
+              {
+                q: currentLanguage === 'en' ? 'Does JJ Transfers do transfers to the levadas in Madeira?' : 'A JJ Transfers faz transfers para as levadas da Madeira?',
+                a: currentLanguage === 'en' ? 'Yes! We do transfers to all levadas in Madeira: Levada das 25 Fontes, Levada do Caldeirão Verde, Levada do Rei, Levada do Alecrim, Vereda do Pico do Areeiro and many more. We drop you at the start and pick you up at the end.' : 'Sim! Fazemos transfer para todas as levadas da Madeira: Levada das 25 Fontes, Levada do Caldeirão Verde, Levada do Rei, Levada do Alecrim, Vereda do Pico do Areeiro e muitas mais. Deixamo-lo no início do trilho e buscamo-lo no final.'
+              },
+              {
+                q: currentLanguage === 'en' ? 'Can I book a last-minute transfer in Madeira?' : 'Posso reservar um transfer de última hora na Madeira?',
+                a: currentLanguage === 'en' ? 'Yes! JJ Transfers Madeira accepts last-minute bookings subject to availability. Book online or contact us via WhatsApp (+351 966 060 500) for an immediate response.' : 'Sim! A JJ Transfers Madeira aceita reservas de última hora, sujeitas a disponibilidade. Reserve online no nosso website ou contacte-nos pelo WhatsApp (+351 966 060 500) para uma resposta imediata.'
+              },
+              {
+                q: currentLanguage === 'en' ? 'How long does the transfer from Madeira airport to Funchal take?' : 'Quanto tempo demora o transfer do aeroporto da Madeira para o Funchal?',
+                a: currentLanguage === 'en' ? 'The transfer from Madeira Airport (FNC) to central Funchal takes approximately 20 to 30 minutes. For destinations like Porto Moniz or São Vicente, the journey may take 1h30 to 2h.' : 'O transfer do Aeroporto da Madeira (FNC) para o centro do Funchal demora aproximadamente 20 a 30 minutos, dependendo do trânsito. Para destinos como Porto Moniz ou São Vicente, o trajeto pode demorar 1h30 a 2h.'
+              }
+            ].map((faq, i) => (
+              <details key={i} className="group bg-gray-800/80 rounded-xl border border-gray-700 overflow-hidden">
+                <summary className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-700/50 transition-colors">
+                  <h3 className="text-lg font-semibold text-white pr-4">{faq.q}</h3>
+                  <span className="text-amber-400 text-2xl flex-shrink-0 group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <div className="px-5 pb-5 text-gray-300 leading-relaxed border-t border-gray-700 pt-4">
+                  {faq.a}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-20 bg-amber-400 text-black"> 
+      <section className="py-20 bg-amber-400 text-black">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-4">
             {t('cta.title')}

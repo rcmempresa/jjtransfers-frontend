@@ -54,8 +54,8 @@ const BlogList: React.FC = () => {
   const [category, setCategory] = useState('Todos');
 
   useSEO({
-    title: 'Blog JJ Transfers Madeira — Guias, Roteiros e Dicas de Viagem',
-    description: 'Descubra os melhores roteiros na Madeira, dicas de transfers do aeroporto, passeios privados e tudo o que precisa saber para uma visita inesquecível à Ilha da Madeira.',
+    title: 'Blog JJ Transfers Madeira — O Que Fazer na Madeira, Guias, Roteiros e Dicas de Viagem',
+    description: 'Descubra o que fazer na Madeira: os melhores roteiros, levadas, praias, Cabo Girão, Porto Moniz, Monte. Dicas de transfers do aeroporto, passeios privados e tudo o que precisa saber para visitar a Ilha da Madeira.',
     url: 'https://jjtransfersmadeira.com/blog',
   });
 

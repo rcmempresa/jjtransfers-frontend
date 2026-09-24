@@ -510,9 +510,9 @@ const Services = () => {
     const navigate = useNavigate();
 
     useSEO({
-      title: 'Serviços de Transfer Madeira | Aeroporto, Passeios Privados e Transporte Executivo',
-      description: 'Todos os serviços de transfer e transporte privado na Madeira: transfer do aeroporto do Funchal, passeios pela ilha, transporte executivo e transfers para casamentos. Reserve online.',
-      keywords: 'serviços transfer madeira, transfer aeroporto funchal, passeios privados madeira, transporte executivo madeira, transfer casamento madeira, excursões madeira',
+      title: 'Serviços de Transfer na Madeira | Aeroporto Funchal, Passeios Privados, Levadas e Transporte Executivo — JJ Transfers',
+      description: 'Todos os serviços de transfer e transporte privado na Madeira: transfer do aeroporto do Funchal, passeios pela ilha (Cabo Girão, Monte, Porto Moniz, levadas), transporte executivo, transfers para casamentos e cruzeiros. O que fazer na Madeira? Reserve online com preço fixo.',
+      keywords: 'serviços transfer madeira, transfer aeroporto funchal, passeios privados madeira, transporte executivo madeira, transfer casamento madeira, excursões madeira, levadas madeira transfer, cabo girão tour, monte madeira passeio, porto moniz transfer, o que fazer na madeira, transfer cruzeiro funchal, passeios ilha da madeira',
       url: '/services',
     });
     

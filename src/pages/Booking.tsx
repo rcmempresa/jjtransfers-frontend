@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast'; 
 
@@ -139,15 +139,32 @@ const useIsMobile = (breakpoint = 768) => {
 
 // ======================================================================
 
+// COMPONENTES WRAPPER FORA DO COMPONENTE PRINCIPAL
+// Evita que o React desmonte/remonte o formulário a cada re-render (causa perda de foco no mobile)
+const BorderWrapper = ({ children, isMobile }: { children: React.ReactNode, isMobile: boolean }) => {
+    if (isMobile) {
+        return <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>;
+    }
+    return (
+        <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
+            <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>
+        </ElectricBorder>
+    );
+};
+
+const SimpleWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>
+);
+
 const Booking: React.FC = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
 
   useSEO({
-    title: 'Reservar Transfer Madeira | JJ Transfers — Preço Fixo, Confirmação Imediata',
-    description: 'Reserve o seu transfer privado na Madeira em 60 segundos. Transfer do aeroporto do Funchal, passeios e transporte executivo. Preço fixo, sem surpresas, confirmação imediata.',
-    keywords: 'reservar transfer madeira, booking transfer madeira, preço transfer aeroporto madeira, reserva online transfer madeira',
+    title: 'Reservar Transfer Madeira Online | JJ Transfers — Aeroporto Funchal, Passeios, Preço Fixo',
+    description: 'Reserve o seu transfer privado na Madeira em 60 segundos. Transfer do aeroporto do Funchal para qualquer hotel, passeios pelas levadas, Cabo Girão, Porto Moniz. Preço fixo, sem surpresas, confirmação imediata. O melhor transporte na Madeira.',
+    keywords: 'reservar transfer madeira, booking transfer madeira, preço transfer aeroporto madeira, reserva online transfer madeira, quanto custa transfer aeroporto madeira, transfer madeira preço, reservar transporte privado madeira',
     url: '/booking',
   });
   const isMobile = useIsMobile(); 
@@ -187,7 +204,10 @@ const Booking: React.FC = () => {
       paymentMethod: 'mbw' as 'mbw' | 'mb' | 'cc',
   });
   
-  const [slotValidationError, setSlotValidationError] = useState<string | null>(null); 
+  const clientFormRef = useRef(clientForm);
+  clientFormRef.current = clientForm;
+
+  const [slotValidationError, setSlotValidationError] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showVehicleWarning, setShowVehicleWarning] = useState(false); 
   
@@ -449,18 +469,21 @@ const Booking: React.FC = () => {
   // Handler de submissão de Pagamento (Estável)
   const handlePaymentSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedVehicle || !tripDetails || !selectedService || !tripDetails.date || !tripDetails.time || !clientForm.passenger_email || !clientForm.passenger_name || !clientForm.passenger_phone) {
+
+    // Usa ref para ler o valor atual sem precisar de clientForm nas dependências
+    const currentForm = clientFormRef.current;
+
+    if (!selectedVehicle || !tripDetails || !selectedService || !tripDetails.date || !tripDetails.time || !currentForm.passenger_email || !currentForm.passenger_name || !currentForm.passenger_phone) {
         toast.error(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
         setPaymentError(t('paymentError') || "Dados da reserva ou cliente incompletos. Por favor, volte atrás.");
         return;
     }
-    
+
     if (!validateCurrentSlotAvailability()) {
         toast.error(t('booking.slotUnavailableError') || "O horário escolhido ficou indisponível no último momento. Por favor, corrija o Passo 4 antes de submeter.");
         setPaymentError(t('booking.slotUnavailableError') || "O horário escolhido ficou indisponível no último momento. Por favor, corrija o Passo 4 antes de submeter.");
-        setCurrentStep(4); 
-        return; 
+        setCurrentStep(4);
+        return;
     }
 
     setIsSubmittingPayment(true);
@@ -469,11 +492,11 @@ const Booking: React.FC = () => {
     const token = localStorage.getItem('jwtToken');
     const headers: HeadersInit = { 'Content-Type': 'application/json' };
     if (token) { headers['Authorization'] = `Bearer ${token}`; }
-    
-    const calculatedDurationMinutes = 
-        isHourlyService && tripDetails.durationHours 
-        ? tripDetails.durationHours * 60 
-        : 60; 
+
+    const calculatedDurationMinutes =
+        isHourlyService && tripDetails.durationHours
+        ? tripDetails.durationHours * 60
+        : 60;
 
     const payload = {
         fleet_id: selectedVehicle.id,
@@ -482,18 +505,18 @@ const Booking: React.FC = () => {
         trip_duration_minutes: calculatedDurationMinutes,
         pickup_address: tripDetails.pickupAddress,
         dropoff_address: tripDetails.dropoffAddress,
-        final_price: calculatedPrice.toFixed(2), 
-        passenger_name: clientForm.passenger_name,
-        passenger_email: clientForm.passenger_email,
-        passenger_phone: clientForm.passenger_phone,
-        special_requests: clientForm.special_requests || null,
-        paymentMethod: clientForm.paymentMethod,
+        final_price: calculatedPrice.toFixed(2),
+        passenger_name: currentForm.passenger_name,
+        passenger_email: currentForm.passenger_email,
+        passenger_phone: currentForm.passenger_phone,
+        special_requests: currentForm.special_requests || null,
+        paymentMethod: currentForm.paymentMethod,
         clientData: {
-            name: clientForm.passenger_name,
-            email: clientForm.passenger_email,
-            phone: clientForm.passenger_phone,
-            phone_indicative: '351', 
-            key: `client-${clientForm.passenger_email}`,
+            name: currentForm.passenger_name,
+            email: currentForm.passenger_email,
+            phone: currentForm.passenger_phone,
+            phone_indicative: '351',
+            key: `client-${currentForm.passenger_email}`,
         }
     };
     
@@ -543,9 +566,8 @@ const Booking: React.FC = () => {
         setIsSubmittingPayment(false);
     }
   }, [
-      selectedVehicle, tripDetails, selectedService, clientForm, t, calculatedPrice,
-      isHourlyService, validateCurrentSlotAvailability, reservedSlots, 
-      setIsSubmittingPayment, setPaymentError, setCurrentStep, setReservationResponse
+      selectedVehicle, tripDetails, selectedService, t, calculatedPrice,
+      isHourlyService, validateCurrentSlotAvailability, reservedSlots,
   ]);
 
 
@@ -559,23 +581,6 @@ const Booking: React.FC = () => {
   // ----------------------------------------------------------------------
   // RENDERIZAÇÃO
   // ----------------------------------------------------------------------
-
-  const BorderWrapper = ({ children, step }: { children: React.ReactNode, step: number }) => {
-    if (isMobile) {
-        return <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>;
-    }
-    
-    return (
-        <ElectricBorder color="#FBBF24" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }}>
-            <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>
-        </ElectricBorder>
-    );
-  };
-  
-  const SimpleWrapper = ({ children }: { children: React.ReactNode }) => (
-      <div className={`${cardBg} rounded-xl shadow-2xl p-8`}>{children}</div>
-  );
-
 
   if (isLoading) {
     return (
@@ -721,7 +726,7 @@ const Booking: React.FC = () => {
 
               {/* PASSO 2: Seleção de Serviço */}
               {currentStep === 2 && ( 
-                  <BorderWrapper step={2}>
+                  <BorderWrapper isMobile={isMobile}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3 text-center">2. {t('booking.selectService')}</h2>
                       <div className="grid md:grid-cols-3 gap-6 mb-8">
                           {servicesList.map((service) => {
@@ -785,7 +790,7 @@ const Booking: React.FC = () => {
               
               {/* PASSO 4: Data e Hora */}
               {currentStep === 4 && selectedVehicle && tripDetails && selectedService && ( 
-                <BorderWrapper step={4}>
+                <BorderWrapper isMobile={isMobile}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">4. {t('booking.tripDateTime') || 'Data e Hora'}</h2>
 
                       <div className="mb-6 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
@@ -817,7 +822,7 @@ const Booking: React.FC = () => {
               
               {/* PASSO 5: Detalhes de Pagamento (Com o componente isolado ClientDetailsStep) */}
               {currentStep === 5 && selectedVehicle && tripDetails && selectedService && ( 
-                <BorderWrapper step={5}>
+                <BorderWrapper isMobile={isMobile}>
                       <h2 className="text-3xl font-bold text-white mb-6 border-b border-gray-700 pb-3">5. {t('booking.paymentDetails') || 'Detalhes do Pagamento'}</h2>
                       
                       {/* Resumo da Reserva */}

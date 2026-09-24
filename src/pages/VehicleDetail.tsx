@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import LocationPickerField from '../components/LocationPickerField';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
     Users, Luggage, ArrowRight, Car, Euro, Check, Tag, ChevronLeft, X, 
@@ -6,8 +7,9 @@ import {
     ChevronDown, MapPin, Clock, Map, Loader, AlertTriangle
 } from 'lucide-react'; 
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 // Importe a interface que define a estrutura do seu veículo
-import { VehicleInterface } from '../components/VehicleCard'; 
+import { VehicleInterface } from '../components/VehicleCard';
 
 // Importe a sua lista de serviços, que é usada no bloco de reserva
 import { services } from '../data/services'; 
@@ -74,10 +76,6 @@ const VehicleBookingBlock: React.FC<{ vehicleName: string, vehicleId: string, ba
     const navigate = useNavigate();
     const iconColor = "text-gray-400"; // Definição da cor do ícone
 
-    // REFS PARA O GOOGLE AUTOCOMPLETE
-    const pickupRef = useRef<HTMLInputElement>(null);
-    const dropoffRef = useRef<HTMLInputElement>(null);
-
     const [pickup, setPickup] = useState('');
     const [dropoff, setDropoff] = useState('');
     
@@ -87,82 +85,7 @@ const VehicleBookingBlock: React.FC<{ vehicleName: string, vehicleId: string, ba
     const [time, setTime] = useState('10:00');
     const [error, setError] = useState(''); 
     
-    // =========================================================================
-    // LÓGICA DO AUTOCOMPLETE (Mantida)
-    // =========================================================================
-    useEffect(() => {
-        if (!window.google || !window.google.maps || !window.google.maps.places) {
-            console.warn("Google Maps Places library não está carregada. O Autocomplete não funcionará.");
-            return;
-        }
 
-        const bounds = new window.google.maps.LatLngBounds(
-            new window.google.maps.LatLng(MADEIRA_BOUNDS.south, MADEIRA_BOUNDS.west),
-            new window.google.maps.LatLng(MADEIRA_BOUNDS.north, MADEIRA_BOUNDS.east)
-        );
-
-        const options = {
-            componentRestrictions: { country: 'pt' }, 
-            fields: ['formatted_address'], 
-            strictBounds: true,
-            bounds: bounds,
-            types: ['establishment', 'geocode'],
-        };
-        
-        const initializeAutocomplete = (ref: React.RefObject<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string>>) => {
-            if (ref.current) {
-                const autocomplete = new window.google.maps.places.Autocomplete(ref.current, options);
-                
-                autocomplete.addListener('place_changed', () => {
-                    const place = autocomplete.getPlace();
-                    if (place.formatted_address) {
-                        setter(place.formatted_address); 
-                        setError(''); 
-                    }
-                });
-            }
-        };
-        
-        initializeAutocomplete(pickupRef, setPickup);
-        initializeAutocomplete(dropoffRef, setDropoff);
-      
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); 
-
-    // =========================================================================
-    // 🎯 FUNÇÃO PARA GEOLOCALIZAÇÃO (Adicionada)
-    // =========================================================================
-    const handleLocateMe = () => {
-        if (navigator.geolocation && window.google && window.google.maps) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const geocoder = new window.google.maps.Geocoder();
-                    const latlng = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    };
-
-                    geocoder.geocode({ location: latlng }, (results, status) => {
-                        if (status === 'OK' && results && results[0]) {
-                            // Preenche o campo de recolha com o endereço
-                            setPickup(results[0].formatted_address);
-                            // Opcional: feedback visual para o utilizador
-                            alert(`Localização definida para: ${results[0].formatted_address}`);
-                        } else {
-                            alert('Não foi possível converter a localização em endereço.');
-                        }
-                    });
-                },
-                (error) => {
-                    console.error("Erro de geolocalização: ", error);
-                    alert('A permissão de localização foi negada ou ocorreu um erro.');
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            alert('O seu navegador não suporta geolocalização ou a API do Google Maps não está carregada.');
-        }
-    };
     
     // =========================================================================
     // LÓGICA DE SUBMISSÃO (Mantida)
@@ -215,43 +138,12 @@ const VehicleBookingBlock: React.FC<{ vehicleName: string, vehicleId: string, ba
 
             <form onSubmit={handleBookClick} className="space-y-4">
                 
-                {/* 🎯 CAMPO DE RECOLHA (Com Ícone e Botão de Localização) */}
-                <div className="relative">
-                    <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
-                    <input 
-                        type="text" 
-                        placeholder={t('booking.pickupAddress') || 'Endereço de Recolha'} 
-                        defaultValue={pickup} 
-                        ref={pickupRef} 
-                        onChange={(e) => {setPickup(e.target.value); setError('');}} 
-                        className={`${inputClasses} pl-12 pr-12 ${error && !pickup.trim() ? 'border-red-500 focus:border-red-500' : 'border-gray-700 focus:border-gold focus:ring-gold'}`} 
-                        required
-                    />
-                    {/* Botão de Geolocalização */}
-                    <button
-                        type="button"
-                        onClick={handleLocateMe}
-                        title="Usar Localização Atual"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-gold transition-colors"
-                        style={{ marginTop: '-2px' }} // Pequeno ajuste de alinhamento
-                    >
-                        <Map className="w-5 h-5" />
-                    </button>
-                </div>
-                
-                {/* 🎯 CAMPO DE DESTINO (Com Ícone) */}
-                <div className="relative">
-                    <MapPin className={`absolute left-3 top-3 w-5 h-5 ${iconColor}`} />
-                    <input 
-                        type="text" 
-                        placeholder={t('booking.dropoffAddress') || 'Endereço de Destino'} 
-                        defaultValue={dropoff} 
-                        ref={dropoffRef} 
-                        onChange={(e) => {setDropoff(e.target.value); setError('');}} 
-                        className={`${inputClasses} pl-12 ${error && !dropoff.trim() ? 'border-red-500 focus:border-red-500' : 'border-gray-700 focus:border-gold focus:ring-gold'}`} 
-                        required
-                    />
-                </div>
+                {/* Seletor de localizações com mapa */}
+                <LocationPickerField
+                    pickup={pickup}
+                    dropoff={dropoff}
+                    onConfirm={(p, d) => { setPickup(p); setDropoff(d); setError(''); }}
+                />
                 
                 {/* Campos de Data/Hora (Com Ícones) */}
                 <div className="grid grid-cols-2 gap-2">
@@ -383,6 +275,17 @@ const VehicleDetail: React.FC = () => {
         fetchVehicle();
     }, [id]); 
     
+    useSEO({
+        title: vehicle
+            ? `${vehicle.name} | Transfer Privado na Madeira — JJ Transfers`
+            : 'Veículo de Transfer Privado na Madeira | JJ Transfers',
+        description: vehicle
+            ? `Reserve o ${vehicle.name} para o seu transfer privado na Madeira. Capacidade: ${vehicle.capacity} passageiros, ${vehicle.luggage_capacity} malas. Ideal para transfer aeroporto, passeios e transporte na ilha.`
+            : 'Descubra os nossos veículos premium para transfers privados na Madeira. Aeroporto, passeios e transporte executivo.',
+        keywords: `${vehicle?.name || 'veículo'} transfer madeira, transfer privado madeira, carro com motorista madeira, ${vehicle?.type || ''} madeira`,
+        url: `/vehicle/${id}`,
+    });
+
     const translatedFeatures = useMemo(() => {
         if (!vehicle || !vehicle.features) return [];
 

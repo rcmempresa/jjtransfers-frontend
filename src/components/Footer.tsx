@@ -19,6 +19,7 @@ const Footer: React.FC = () => {
     { path: '/', key: 'nav.home' },
     { path: '/services', key: 'nav.services' },
     { path: '/fleet', key: 'nav.fleet' },
+    { path: '/blog', key: 'nav.blog' },
     { path: '/about', key: 'nav.about' },
     { path: '/contact', key: 'nav.contact' },
     { path: '/booking', key: 'nav.book' },

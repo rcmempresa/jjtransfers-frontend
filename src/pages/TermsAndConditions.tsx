@@ -1,9 +1,17 @@
 import React from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 import { Lock, FileText, XCircle, Clock } from 'lucide-react';
 
 const TermsAndConditions: React.FC = () => {
   const { t } = useLanguage();
+
+  useSEO({
+    title: 'Termos e Condicoes | JJ Transfers Madeira',
+    description: 'Termos e condicoes do servico de transfers privados da JJ Transfers Madeira. Informacoes sobre reservas, cancelamentos e politicas de servico.',
+    url: '/terms',
+  });
+
   const GOLD_COLOR_CLASS = 'text-amber-400';
   const SECTION_TITLE_CLASS = 'text-2xl font-bold border-b border-gray-700 pb-2 mb-4';
 

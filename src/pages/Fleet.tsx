@@ -338,9 +338,9 @@ const Fleet: React.FC = () => {
     const navigate = useNavigate();
 
     useSEO({
-      title: 'Frota de Veículos | JJ Transfers Madeira — Viaturas Premium para Transfers Privados',
-      description: 'Conheça a frota de veículos premium da JJ Transfers Madeira. Sedans executivos, MPVs e vans para transfers privados, passeios e transporte de grupos na Madeira.',
-      keywords: 'frota transfers madeira, veículos transfer madeira, van transfer madeira, transfer grupo madeira, sedan executivo madeira',
+      title: 'Frota de Veículos Premium | JJ Transfers Madeira — Sedans, MPVs e Vans para Transfer e Passeios na Madeira',
+      description: 'Conheça a frota premium da JJ Transfers Madeira: sedans executivos, MPVs e vans para transfers privados do aeroporto, passeios pela ilha e transporte de grupos. Veículos confortáveis e seguros para a sua viagem na Madeira.',
+      keywords: 'frota transfers madeira, veículos transfer madeira, van transfer madeira, transfer grupo madeira, sedan executivo madeira, carro privado com motorista madeira, aluguer com motorista madeira',
       url: '/fleet',
     });
     

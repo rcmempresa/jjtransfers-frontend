@@ -1,4 +1,25 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /profile
 
+# Sitemaps
 Sitemap: https://jjtransfersmadeira.com/sitemap.xml
+
+# Crawl-delay (be nice to crawlers)
+Crawl-delay: 1
+
+# Google specific
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register

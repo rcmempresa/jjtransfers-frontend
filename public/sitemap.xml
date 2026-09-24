@@ -1,85 +1,160 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
+  <!-- Homepage -->
   <url>
     <loc>https://jjtransfersmadeira.com/</loc>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jjtransfersmadeira.com/"/>
   </url>
 
-  <url>
-    <loc>https://jjtransfersmadeira.com/services</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
+  <!-- Reservar / Booking -->
   <url>
     <loc>https://jjtransfersmadeira.com/booking</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/booking"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/booking"/>
+  </url>
+
+  <!-- Servicos -->
+  <url>
+    <loc>https://jjtransfersmadeira.com/services</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/services"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/services"/>
+  </url>
+
+  <!-- Frota -->
+  <url>
+    <loc>https://jjtransfersmadeira.com/fleet</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/fleet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/fleet"/>
+  </url>
+
+  <!-- Reservar (formulario inicial) -->
+  <url>
+    <loc>https://jjtransfersmadeira.com/reserve</loc>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
-  <url>
-    <loc>https://jjtransfersmadeira.com/fleet</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
+  <!-- Blog -->
   <url>
     <loc>https://jjtransfersmadeira.com/blog</loc>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/blog"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/blog"/>
   </url>
 
+  <!-- Blog Posts -->
   <url>
     <loc>https://jjtransfersmadeira.com/blog/6/transfer-aeroporto-madeira-tudo-o-que-precisa-saber-em-2025</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
 
   <url>
     <loc>https://jjtransfersmadeira.com/blog/7/10-lugares-imperdiveis-na-madeira-que-tem-de-visitar-em-2025</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
 
   <url>
     <loc>https://jjtransfersmadeira.com/blog/8/levadas-da-madeira-os-melhores-percursos-e-como-chegar-em-2025</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
 
   <url>
     <loc>https://jjtransfersmadeira.com/blog/9/funchal-guia-completo-para-visitar-a-capital-da-madeira</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
 
   <url>
     <loc>https://jjtransfersmadeira.com/blog/10/transfer-privado-vs-taxi-na-madeira-qual-a-melhor-opcao</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
 
   <url>
     <loc>https://jjtransfersmadeira.com/blog/11/monte-camacha-e-camara-de-lobos-passeios-privados-na-madeira</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
 
+  <!-- Sobre -->
   <url>
     <loc>https://jjtransfersmadeira.com/about</loc>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/about"/>
+  </url>
+
+  <!-- Contacto -->
+  <url>
+    <loc>https://jjtransfersmadeira.com/contact</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://jjtransfersmadeira.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jjtransfersmadeira.com/contact"/>
+  </url>
+
+  <!-- News -->
+  <url>
+    <loc>https://jjtransfersmadeira.com/news</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
 
+  <!-- Politica de Privacidade -->
   <url>
-    <loc>https://jjtransfersmadeira.com/contact</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://jjtransfersmadeira.com/privacy</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Termos e Condicoes -->
+  <url>
+    <loc>https://jjtransfersmadeira.com/terms</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Politica de Cookies -->
+  <url>
+    <loc>https://jjtransfersmadeira.com/cookies</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 
 </urlset>

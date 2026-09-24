@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 import { translations } from '../data/translations';
 import { Link } from 'react-router-dom';
 
@@ -8,6 +9,12 @@ const COOKIE_CONSENT_KEY = 'cookie_consent_accepted';
 const CookiePolicyPage = () => {
   const { lang } = useLanguage();
   const t = translations[lang] || {};
+
+  useSEO({
+    title: 'Politica de Cookies | JJ Transfers Madeira',
+    description: 'Politica de cookies do website JJ Transfers Madeira. Saiba como utilizamos cookies para melhorar a sua experiencia de reserva de transfers na Madeira.',
+    url: '/cookies',
+  });
 
   // Assume que o conteúdo da política está em t.cookies.details
   const policyContent = t.cookies?.details;

@@ -6,7 +6,8 @@ import {
     User
 } from 'lucide-react';
 // CORREÇÃO: Ajustar o path de importação para um nível acima
-import { useLanguage } from '../hooks/useLanguage'; 
+import { useLanguage } from '../hooks/useLanguage';
+import { useSEO } from '../hooks/useSEO';
 
 // =========================================================================
 // TIPAGEM
@@ -362,11 +363,18 @@ const ArticleDetail: React.FC<{ article: NewsArticle; onBack: () => void; t: (ke
 // =========================================================================
 
 const News: React.FC = () => {
-    
+
     const { t } = useLanguage();
-    const navigate = useNavigate(); 
-    const { articleId } = useParams<{ articleId: string }>(); 
-    
+    const navigate = useNavigate();
+    const { articleId } = useParams<{ articleId: string }>();
+
+    useSEO({
+        title: 'Noticias e Novidades | JJ Transfers Madeira — Transfers, Turismo e Dicas da Madeira',
+        description: 'Ultimas noticias sobre transfers na Madeira, turismo na ilha, dicas de viagem, novos servicos e roteiros. Fique a par de tudo sobre a Ilha da Madeira com a JJ Transfers.',
+        keywords: 'noticias madeira, turismo madeira, novidades transfers madeira, dicas viagem madeira, o que fazer madeira',
+        url: '/news',
+    });
+
     // ESTADOS GERAIS DE DADOS
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [isLoading, setIsLoading] = useState(true); 
